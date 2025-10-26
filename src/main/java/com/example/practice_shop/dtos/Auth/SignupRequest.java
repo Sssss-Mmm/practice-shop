@@ -12,7 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor // 기본 생성자
 @AllArgsConstructor // 모든 필드를 매개변수로 하는 생성자
 public class SignupRequest {
-        /** 기본 정보 **/
+    /** 기본 정보 **/
     @Email(message = "이메일 형식이 올바르지 않습니다.")
     @NotBlank(message = "이메일은 필수 입력 항목입니다.")
     private String email;

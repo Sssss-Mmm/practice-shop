@@ -49,7 +49,12 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // CSRF 비활성화 (API 개발용)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/","/auth/**").permitAll() 
+                .requestMatchers(
+                "/",
+                "/auth/**",
+                "v3/api-docs/**",
+                "swagger-ui/**",
+                "/swagger-ui.html").permitAll() 
             )
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
             .formLogin(login -> login.disable()) // 기본 로그인 폼 제거

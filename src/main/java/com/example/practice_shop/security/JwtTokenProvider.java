@@ -1,11 +1,13 @@
 package com.example.practice_shop.security;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.*;
 import java.util.Date;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,11 +15,18 @@ public class JwtTokenProvider {
     /**
      * JWT 서명에 사용할 비밀 키 생성
      */
-    private final Key key = Keys.secretKeyFor(io.jsonwebtoken.SignatureAlgorithm.HS256);
+    ;
+    private Key key;
+
     /**
      * 액세스 토큰 유효 기간 (밀리초 단위)
      */
     private final long accessTokenValidity = 1000L * 60 * 60; // 60분
+
+    public JwtTokenProvider(@Value("${JWT_SECRET}")String jwtSecret) {
+        // 비밀 키를 바이트 배열로 변환하여 HMAC-SHA 키 생성
+        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
 
     /**
      * 액세스 토큰 생성
