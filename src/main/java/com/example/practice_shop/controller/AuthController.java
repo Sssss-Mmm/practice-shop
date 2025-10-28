@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.practice_shop.dtos.Auth.SignupRequest;
 import com.example.practice_shop.dtos.Auth.UserLogin;
+import com.example.practice_shop.dtos.Auth.UserLogout;
 import com.example.practice_shop.entity.User;
 import com.example.practice_shop.service.UserService;
 
@@ -39,8 +40,15 @@ public class AuthController {
 }
     @PostMapping("/login")
     @Operation(summary = "로그인", description = "사용자가 로그인을 합니다.")
-    public ResponseEntity<Map<String,String>> login(@RequestBody UserLogin userLogin) {
+    public ResponseEntity<Map<String,String>> login(@Valid@RequestBody UserLogin userLogin) {
         Map<String,String> response  = userService.Login(userLogin);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "로그아웃",description = "사용자가 로그아웃을 합니다.")
+    public ResponseEntity<String> logout(@RequestBody UserLogout userLogout){
+        userService.logout(userLogout);
+        return ResponseEntity.ok("로그아웃 성공");
     }
 }
