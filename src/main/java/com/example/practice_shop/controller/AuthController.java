@@ -51,6 +51,18 @@ public class AuthController {
     }
 
     /**
+     * oauth2 사용자 정보 없는 경우 회원정보 등록 엔드포인트입니다.
+     * @param signupRequest 회원가입 정보
+     * @return 성공 메시지
+     */
+    @PostMapping("/oauth2/register")
+    @Operation(summary = "OAuth2 회원가입",description = "OAuth2로 인증된 사용자가 추가 정보를 입력하여 회원가입을 합니다.")
+    public ResponseEntity<String> oauth2Register(@RequestBody SignupRequest signupRequest){ 
+        userService.oauth2Register(signupRequest);
+        return ResponseEntity.ok("회원가입 성공");
+    }
+
+    /**
      * 로그아웃 엔드포인트입니다.
      * @param userLogout 로그아웃 요청 정보 (Access Token, Refresh Token)
      * @return 성공 메시지
@@ -61,4 +73,15 @@ public class AuthController {
         userService.logout(userLogout);
         return ResponseEntity.ok("로그아웃 성공");
     }
+    /**
+     * refresh token 재발급 엔드포인트입니다.
+     * @param refreshToken
+     * @return 새로운 Access Token과 Refresh Token
+     */
+    @PostMapping("/refresh-token")
+    @Operation(summary = "토큰 재발급",description = "사용자가 만료된 Access Token을 갱신합니다.")
+    public ResponseEntity<Map<String,String>> refreshToken(@RequestBody String refreshToken){
+        Map<String,String> response = userService.refreshToken(refreshToken);
+        return ResponseEntity.ok(response);
+}
 }

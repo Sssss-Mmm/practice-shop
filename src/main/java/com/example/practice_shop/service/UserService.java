@@ -112,4 +112,56 @@ public class UserService {
         user.setRefreshToken(null);
         userRepository.save(user);
     }
+    /**
+     * OAuth2 사용자 추가 정보 등록
+     * @param signupRequest
+     */
+    public void oauth2Register(SignupRequest signupRequest){ 
+        String email = signupRequest.getEmail();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+        user.setPhoneNumber(signupRequest.getPhoneNumber());
+        user.setNickname(signupRequest.getNickname());
+        user.setRegion(signupRequest.getRegion());
+        user.setAddress(signupRequest.getAddress());
+        user.setGender(signupRequest.getGender());
+        user.setBirthDate(signupRequest.getBirthDate());
+        userRepository.save(user);
+}
+    /**
+     * 만료된 Access Token을 갱신하고 새로운 토큰을 발급합니다.
+     * @param refreshToken 클라이언트로부터 받은 Refresh Token
+     * @return 새로운 Access Token과 Refresh Token이 담긴 Map
+     */
+    public Map<String, String> refreshToken(String refreshToken) {
+        // Refresh Token 유효성 검증
+        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+            throw new IllegalArgumentException("유효하지 않은 Refresh Token입니다.");
+        }
+
+        // Refresh Token에서 이메일 추출
+        String email = jwtTokenProvider.getEmail(refreshToken);
+
+        // 해당 이메일의 사용자를 찾아 데이터베이스에 저장된 Refresh Token과 비교
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+
+        if (!refreshToken.equals(user.getRefreshToken())) {
+            throw new IllegalArgumentException("Refresh Token이 일치하지 않습니다.");
+        }
+
+        // 새로운 토큰 생성
+        String newAccessToken = jwtTokenProvider.createAccessToken(user.getEmail());
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
+
+        // 새로운 Refresh Token을 데이터베이스에 저장
+        user.setRefreshToken(newRefreshToken);
+        userRepository.save(user);
+
+        // 토큰을 Map에 담아 반환
+        Map<String, String> response = new HashMap<>();
+        response.put("accessToken", newAccessToken);
+        response.put("refreshToken", newRefreshToken);
+
+        return response;
+    }
 }
