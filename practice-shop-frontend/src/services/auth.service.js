@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
-const API_URL = '/api/auth/';
+const API_URL = '/auth/';
 
 class AuthService {
     login(email, password) {
@@ -28,11 +28,33 @@ class AuthService {
         localStorage.removeItem('user');
     }
 
-    signup(username, email, password) {
+    signup(email, password, name, phoneNumber, nickname, region, address, gender, birthDate) {
         return axios.post(API_URL + 'signup', {
-            username,
             email,
-            password
+            password,
+            name,
+            phoneNumber,
+            nickname,
+            region,
+            address,
+            gender,
+            birthDate
+        });
+    }
+
+    completeOAuth2Registration(temporaryToken, name, phoneNumber, nickname, region, address, gender, birthDate) {
+        return axios.post(API_URL + 'oauth2/register', {
+            temporaryToken,
+            name,
+            phoneNumber,
+            nickname,
+            region,
+            address,
+            gender,
+            birthDate
+        }).then(response => {
+            // Assuming the backend returns accessToken and refreshToken directly
+            return response.data;
         });
     }
 

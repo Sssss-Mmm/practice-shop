@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Spring Security의 OAuth2UserService 인터페이스를 구현한 커스텀 서비스입니다.
@@ -85,6 +86,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     .email(email)
                     .name(name)
                     .provider(provider)
+                    .providerId(provider + "_" + UUID.randomUUID())
                     .role(Role.USER) // 기본 역할을 USER로 설정
                     .status(Status.ACTIVE) // 계정 상태를 활성으로 설정
                     .build();

@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthService from '../services/auth.service';
 import { useNavigate } from 'react-router-dom';
 
-const SignupPage = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+const OAuth2RegisterPage = () => {
+    const [temporaryToken, setTemporaryToken] = useState('');
     const [name, setName] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [nickname, setNickname] = useState('');
@@ -15,13 +14,29 @@ const SignupPage = () => {
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
 
-    const handleSignup = (e) => {
+    useEffect(() => {
+        console.log('OAuth2RegisterPage mounted.');
+        const fragment = window.location.hash.substring(1);
+        const params = new URLSearchParams(fragment);
+        const token = params.get('token');
+
+        if (token) {
+            console.log('Temporary token found:', token);
+            setTemporaryToken(token);
+        } else {
+            console.log('Temporary token not found in fragment.');
+            setMessage('Temporary token not found. Please try logging in again.');
+            // Optionally redirect to login page after a delay
+            // navigate('/login');
+        }
+    }, []);
+
+    const handleCompleteRegistration = (e) => {
         e.preventDefault();
         setMessage('');
 
-        AuthService.signup(
-            email,
-            password,
+        AuthService.completeOAuth2Registration(
+            temporaryToken,
             name,
             phoneNumber,
             nickname,
@@ -31,8 +46,12 @@ const SignupPage = () => {
             birthDate
         ).then(
             (response) => {
-                setMessage(response.data.message);
-                navigate('/login');
+                // Assuming response contains accessToken and refreshToken
+                if (response.accessToken) {
+                    localStorage.setItem('user', JSON.stringify(response));
+                    navigate('/');
+                    window.location.reload();
+                }
             },
             (error) => {
                 const resMessage =
@@ -55,30 +74,8 @@ const SignupPage = () => {
                     className="profile-img-card"
                 />
 
-                <form onSubmit={handleSignup}>
-                    <div className="form-group">
-                        <label htmlFor="email">Email</label>
-                        <input
-                            type="email"
-                            className="form-control"
-                            name="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="password">Password</label>
-                        <input
-                            type="password"
-                            className="form-control"
-                            name="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
+                <form onSubmit={handleCompleteRegistration}>
+                    <p>Please provide additional information to complete your registration.</p>
 
                     <div className="form-group">
                         <label htmlFor="name">Name</label>
@@ -169,7 +166,7 @@ const SignupPage = () => {
                     </div>
 
                     <div className="form-group">
-                        <button className="btn btn-primary btn-block">Sign Up</button>
+                        <button className="btn btn-primary btn-block">Complete Registration</button>
                     </div>
 
                     {message && (
@@ -185,4 +182,4 @@ const SignupPage = () => {
     );
 };
 
-export default SignupPage;
+export default OAuth2RegisterPage;

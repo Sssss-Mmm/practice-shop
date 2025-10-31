@@ -17,7 +17,7 @@ const Header = () => {
     const logOut = () => {
         AuthService.logout();
         setCurrentUser(undefined);
-        navigate('/login');
+        navigate('/auth/login');
     };
 
     return (

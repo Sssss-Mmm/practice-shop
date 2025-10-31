@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import OAuth2RedirectHandler from './pages/OAuth2RedirectHandler';
 import ProfilePage from './pages/ProfilePage';
+import OAuth2RegisterPage from './pages/OAuth2RegisterPage';
 
 function App() {
   return (
@@ -17,8 +18,9 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
+          <Route path="/auth/oauth2/redirect" element={<OAuth2RedirectHandler />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/auth/oauth2/register" element={<OAuth2RegisterPage />} />
         </Routes>
       </main>
       <Footer />

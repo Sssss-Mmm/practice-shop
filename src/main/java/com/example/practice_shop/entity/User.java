@@ -43,7 +43,7 @@ public class User extends BaseTimeEntity {
     private String name;
     
     /** 닉네임 */
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = true)
     private String nickname;
     
     /** OAuth2 제공자 이름 */
@@ -66,23 +66,23 @@ public class User extends BaseTimeEntity {
 
     
     /** 거주 지역 */
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String region;
     
     /** 상세 주소 */
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String address;
     
     /** 핸드폰 번호 */
-    @Column(name = "phone_number", nullable = false)
+    @Column(name = "phone_number", nullable = true)
     private String phoneNumber;
     
     /** 성별 */
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String gender;
     
     /** 생년월일 */
-    @Column(name = "birth_date", nullable = false)
+    @Column(name = "birth_date", nullable = true)
     private String birthDate;
 
     /** 상태 */

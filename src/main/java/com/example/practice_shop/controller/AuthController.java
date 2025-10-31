@@ -1,5 +1,6 @@
 package com.example.practice_shop.controller;
 
+import com.example.practice_shop.dtos.Auth.OAuth2RegistrationRequest;
 import com.example.practice_shop.dtos.Auth.SignupRequest;
 import com.example.practice_shop.dtos.Auth.UserLogin;
 import com.example.practice_shop.dtos.Auth.UserLogout;
@@ -56,10 +57,10 @@ public class AuthController {
      * @return 성공 메시지
      */
     @PostMapping("/oauth2/register")
-    @Operation(summary = "OAuth2 회원가입",description = "OAuth2로 인증된 사용자가 추가 정보를 입력하여 회원가입을 합니다.")
-    public ResponseEntity<String> oauth2Register(@RequestBody SignupRequest signupRequest){ 
-        userService.oauth2Register(signupRequest);
-        return ResponseEntity.ok("회원가입 성공");
+    @Operation(summary = "OAuth2 회원가입 완료",description = "OAuth2로 인증된 사용자가 추가 정보를 입력하여 회원가입을 완료합니다.")
+    public ResponseEntity<Map<String, String>> oauth2CompleteRegistration(@Valid @RequestBody OAuth2RegistrationRequest request){
+        Map<String, String> tokens = userService.completeOAuth2Registration(request);
+        return ResponseEntity.ok(tokens);
     }
 
     /**

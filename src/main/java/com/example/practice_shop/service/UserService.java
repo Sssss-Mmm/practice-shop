@@ -1,6 +1,7 @@
 package com.example.practice_shop.service;
 
 import com.example.practice_shop.constant.Status;
+import com.example.practice_shop.dtos.Auth.OAuth2RegistrationRequest;
 import com.example.practice_shop.dtos.Auth.SignupRequest;
 import com.example.practice_shop.dtos.Auth.UserLogin;
 import com.example.practice_shop.dtos.Auth.UserLogout;
@@ -65,18 +66,14 @@ public class UserService {
         // 이메일로 사용자 조회
         User user = userRepository.findByEmail(userLogin.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
-
-        // 비밀번호 일치 여부 확인
-        if (!passwordEncoder.matches(userLogin.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치 하지 않습니다.");
-        }
-
+        // 비밀번호 검증
         // JWT 생성
-        String accessToken = jwtTokenProvider.createAccessToken(user.getEmail());
-        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
+        String accessToken = jwtTokenProvider.createAccessToken(user.getEmail(), user.getName());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getName());
 
         // Refresh Token을 데이터베이스에 저장
         user.setRefreshToken(refreshToken);
+        user.setLastLoginAt(java.time.LocalDateTime.now()); // 마지막 로그인 시각 업데이트
         userRepository.save(user);
 
         // 토큰을 Map에 담아 반환
@@ -113,20 +110,48 @@ public class UserService {
         userRepository.save(user);
     }
     /**
-     * OAuth2 사용자 추가 정보 등록
-     * @param signupRequest
+     * OAuth2 사용자의 추가 정보 등록을 처리하고 JWT 토큰을 발급합니다.
+     * @param request OAuth2 등록 요청 정보 DTO
+     * @return Access Token과 Refresh Token이 담긴 Map
      */
-    public void oauth2Register(SignupRequest signupRequest){ 
-        String email = signupRequest.getEmail();
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
-        user.setPhoneNumber(signupRequest.getPhoneNumber());
-        user.setNickname(signupRequest.getNickname());
-        user.setRegion(signupRequest.getRegion());
-        user.setAddress(signupRequest.getAddress());
-        user.setGender(signupRequest.getGender());
-        user.setBirthDate(signupRequest.getBirthDate());
+    public Map<String, String> completeOAuth2Registration(OAuth2RegistrationRequest request) {
+        // 임시 토큰 유효성 검증
+        if (!jwtTokenProvider.validateToken(request.getTemporaryToken())) {
+            throw new IllegalArgumentException("유효하지 않은 임시 토큰입니다.");
+        }
+
+        // 임시 토큰에서 이메일 추출
+        String email = jwtTokenProvider.getEmail(request.getTemporaryToken());
+
+        // 이메일로 사용자 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        // 사용자 정보 업데이트
+        user.setName(request.getName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setNickname(request.getNickname());
+        user.setRegion(request.getRegion());
+        user.setAddress(request.getAddress());
+        user.setGender(request.getGender());
+        user.setBirthDate(request.getBirthDate());
         userRepository.save(user);
-}
+
+        // JWT 생성
+        String accessToken = jwtTokenProvider.createAccessToken(user.getEmail(), user.getName());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getName());
+
+        // Refresh Token을 데이터베이스에 저장
+        user.setRefreshToken(refreshToken);
+        userRepository.save(user);
+
+        // 토큰을 Map에 담아 반환
+        Map<String, String> response = new HashMap<>();
+        response.put("accessToken", accessToken);
+        response.put("refreshToken", refreshToken);
+
+        return response;
+    }
     /**
      * 만료된 Access Token을 갱신하고 새로운 토큰을 발급합니다.
      * @param refreshToken 클라이언트로부터 받은 Refresh Token
@@ -150,8 +175,8 @@ public class UserService {
         }
 
         // 새로운 토큰 생성
-        String newAccessToken = jwtTokenProvider.createAccessToken(user.getEmail());
-        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
+        String newAccessToken = jwtTokenProvider.createAccessToken(user.getEmail(), user.getName());
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getName());
 
         // 새로운 Refresh Token을 데이터베이스에 저장
         user.setRefreshToken(newRefreshToken);

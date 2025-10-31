@@ -44,21 +44,48 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
-        // 해당 사용자에 대한 Access Token과 Refresh Token을 생성합니다.
-        String accessToken = jwtTokenProvider.createAccessToken(user.getEmail());
-        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
+        String targetUrl;
 
-        // Refresh Token을 데이터베이스에 저장하여 추후 유효성 검증에 사용합니다.
-        user.setRefreshToken(refreshToken);
-        userRepository.save(user);
+        // 사용자 프로필이 완성되었는지 확인
+        if (isProfileComplete(user)) {
+            // 해당 사용자에 대한 Access Token과 Refresh Token을 생성합니다.
+            String accessToken = jwtTokenProvider.createAccessToken(user.getEmail(), user.getName());
+            String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getName());
 
-        // 프론트엔드로 리디렉션할 URL을 생성합니다. 토큰 정보를 쿼리 파라미터로 포함합니다.
-        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/oauth2/redirect")
-                .queryParam("accessToken", accessToken)
-                .queryParam("refreshToken", refreshToken)
-                .build().toUriString();
+            // Refresh Token을 데이터베이스에 저장하여 추후 유효성 검증에 사용합니다.
+            user.setRefreshToken(refreshToken);
+            user.setLastLoginAt(java.time.LocalDateTime.now()); // 마지막 로그인 시각 업데이트
+            userRepository.save(user);
+
+            // 프론트엔드로 리디렉션할 URL을 생성합니다. 토큰 정보를 URL 프래그먼트로 포함합니다.
+            targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/auth/oauth2/redirect")
+                    .fragment("token=" + accessToken)
+                    .build().toUriString();
+        } else {
+            // 프로필이 불완전하면 임시 등록 토큰을 생성하고 추가 정보 입력 페이지로 리디렉션합니다.
+            String temporaryToken = jwtTokenProvider.createTemporaryRegistrationToken(user.getEmail(), user.getName());
+            targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/auth/oauth2/register")
+                    .fragment("token=" + temporaryToken)
+                    .build().toUriString();
+        }
 
         // 생성된 URL로 클라이언트를 리디렉션합니다.
+        System.out.println("Redirecting to: " + targetUrl);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
+    }
+
+    /**
+     * 사용자의 프로필이 완전한지 확인합니다.
+     * @param user 확인할 User 엔티티
+     * @return 프로필이 완전하면 true, 그렇지 않으면 false
+     */
+    private boolean isProfileComplete(User user) {
+        return user.getName() != null && !user.getName().isEmpty() &&
+               user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty() &&
+               user.getNickname() != null && !user.getNickname().isEmpty() &&
+               user.getRegion() != null && !user.getRegion().isEmpty() &&
+               user.getAddress() != null && !user.getAddress().isEmpty() &&
+               user.getGender() != null && !user.getGender().isEmpty() &&
+               user.getBirthDate() != null && !user.getBirthDate().isEmpty();
     }
 }
