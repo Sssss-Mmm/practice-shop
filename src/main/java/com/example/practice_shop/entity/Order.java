@@ -1,9 +1,11 @@
 package com.example.practice_shop.entity;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.example.practice_shop.constant.OrderStatus;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,6 +27,7 @@ import lombok.Setter;
 @NoArgsConstructor // 기본 생성자
 @AllArgsConstructor // 모든 필드를 매개변수로 하는 생성자
 @Builder // 빌더 패턴 지원
+@Table(name = "orders")
 public class Order extends BaseTimeEntity {
 
      /** 주문 고유 아이디 */
@@ -38,10 +42,9 @@ public class Order extends BaseTimeEntity {
 
     /** 총 주문 금액 */
     @Column(nullable = false)
-    private Double totalPrice;
+    private BigDecimal totalPrice;
 
     /** 사용자 고유 아이디 */
-    @Column
     @JoinColumn(name = "user_id")
     @ManyToOne(optional = false)
     private User user;
@@ -71,6 +74,6 @@ public class Order extends BaseTimeEntity {
     private String paymentMethod;
 
     /** 주문 상품 목록 */
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
 }

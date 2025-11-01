@@ -61,6 +61,23 @@ class AuthService {
     getCurrentUser() {
         return JSON.parse(localStorage.getItem('user'));
     }
+
+    getUserProfile() {
+        return axios.get('/api/users/profile', { headers: this.authHeader() });
+    }
+
+    updateUserProfile(profile) {
+        return axios.put('/api/users/profile', profile, { headers: this.authHeader() });
+    }
+
+    authHeader() {
+        const user = this.getCurrentUser();
+        if (user && user.accessToken) {
+            return { Authorization: 'Bearer ' + user.accessToken };
+        } else {
+            return {};
+        }
+    }
 }
 
 export default new AuthService();

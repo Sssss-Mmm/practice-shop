@@ -5,6 +5,8 @@ import com.example.practice_shop.dtos.Auth.OAuth2RegistrationRequest;
 import com.example.practice_shop.dtos.Auth.SignupRequest;
 import com.example.practice_shop.dtos.Auth.UserLogin;
 import com.example.practice_shop.dtos.Auth.UserLogout;
+import com.example.practice_shop.dtos.User.UserProfileResponse;
+import com.example.practice_shop.dtos.User.UserProfileUpdateRequest;
 import com.example.practice_shop.entity.User;
 import com.example.practice_shop.repository.UserRepository;
 import com.example.practice_shop.security.JwtTokenProvider;
@@ -184,9 +186,32 @@ public class UserService {
 
         // 토큰을 Map에 담아 반환
         Map<String, String> response = new HashMap<>();
-        response.put("accessToken", newAccessToken);
-        response.put("refreshToken", newRefreshToken);
-
-        return response;
-    }
-}
+                response.put("accessToken", newAccessToken);
+                response.put("refreshToken", newRefreshToken);
+        
+                return response;
+            }
+        
+            public UserProfileResponse getUserProfile(String email) {
+                User user = userRepository.findByEmail(email)
+                        .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                return UserProfileResponse.from(user);
+            }
+        
+            public UserProfileResponse updateUserProfile(String email, UserProfileUpdateRequest request) {
+                User user = userRepository.findByEmail(email)
+                        .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+        
+                user.setNickname(request.getNickname());
+                user.setPhoneNumber(request.getPhoneNumber());
+                user.setRegion(request.getRegion());
+                user.setAddress(request.getAddress());
+                user.setGender(request.getGender());
+                user.setBirthDate(request.getBirthDate());
+        
+                userRepository.save(user);
+        
+                return UserProfileResponse.from(user);
+            }
+        }
+        
