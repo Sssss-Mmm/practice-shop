@@ -1,9 +1,13 @@
 package com.example.practice_shop.controller;
 
+import com.example.practice_shop.dtos.Auth.ForgotPasswordRequest;
 import com.example.practice_shop.dtos.Auth.OAuth2RegistrationRequest;
+import com.example.practice_shop.dtos.Auth.ResetPasswordRequest;
+import com.example.practice_shop.dtos.Auth.ResendVerificationEmailRequest;
 import com.example.practice_shop.dtos.Auth.SignupRequest;
 import com.example.practice_shop.dtos.Auth.UserLogin;
 import com.example.practice_shop.dtos.Auth.UserLogout;
+import com.example.practice_shop.dtos.Auth.VerifyEmailRequest;
 import com.example.practice_shop.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -84,5 +88,33 @@ public class AuthController {
     public ResponseEntity<Map<String,String>> refreshToken(@RequestBody String refreshToken){
         Map<String,String> response = userService.refreshToken(refreshToken);
         return ResponseEntity.ok(response);
-}
+    }
+
+    @PostMapping("/verify-email")
+    @Operation(summary = "이메일 인증", description = "이메일 인증 토큰을 검증합니다.")
+    public ResponseEntity<String> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        userService.verifyEmail(request.getToken());
+        return ResponseEntity.ok("이메일 인증이 완료되었습니다.");
+    }
+
+    @PostMapping("/verify-email/resend")
+    @Operation(summary = "이메일 인증 재발송", description = "인증 이메일을 다시 발송합니다.")
+    public ResponseEntity<String> resendVerificationEmail(@Valid @RequestBody ResendVerificationEmailRequest request) {
+        userService.resendEmailVerification(request.getEmail());
+        return ResponseEntity.ok("인증 이메일을 다시 발송했습니다.");
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "비밀번호 재설정 요청", description = "비밀번호 재설정 이메일을 발송합니다.")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        userService.requestPasswordReset(request.getEmail());
+        return ResponseEntity.ok("비밀번호 재설정 안내 이메일을 발송했습니다.");
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "비밀번호 재설정", description = "토큰을 검증하고 새 비밀번호로 변경합니다.")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        userService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok("비밀번호를 재설정했습니다.");
+    }
 }

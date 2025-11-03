@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import AuthService from '../services/auth.service';
 import { useNavigate } from 'react-router-dom';
+import AuthService from '../services/auth.service';
 
 const SignupPage = () => {
     const [email, setEmail] = useState('');
@@ -13,37 +13,46 @@ const SignupPage = () => {
     const [gender, setGender] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [message, setMessage] = useState('');
+    const [success, setSuccess] = useState(false);
     const navigate = useNavigate();
 
-    const handleSignup = (e) => {
+    const resetForm = () => {
+        setPassword('');
+        setPhoneNumber('');
+        setNickname('');
+        setRegion('');
+        setAddress('');
+        setGender('');
+        setBirthDate('');
+    };
+
+    const handleSignup = async (e) => {
         e.preventDefault();
         setMessage('');
+        setSuccess(false);
 
-        AuthService.signup(
-            email,
-            password,
-            name,
-            phoneNumber,
-            nickname,
-            region,
-            address,
-            gender,
-            birthDate
-        ).then(
-            (response) => {
-                setMessage(response.data.message);
-                navigate('/login');
-            },
-            (error) => {
-                const resMessage =
-                    (error.response &&
-                        error.response.data &&
-                        error.response.data.message) ||
-                    error.message ||
-                    error.toString();
-                setMessage(resMessage);
-            }
-        );
+        try {
+            await AuthService.signup({
+                email,
+                password,
+                name,
+                phoneNumber,
+                nickname,
+                region,
+                address,
+                gender,
+                birthDate,
+            });
+            setSuccess(true);
+            setMessage('회원가입이 완료되었습니다. 이메일의 인증 링크를 확인해 주세요.');
+            resetForm();
+        } catch (error) {
+            const resMessage =
+                (error.response && error.response.data && error.response.data.message) ||
+                error.message ||
+                error.toString();
+            setMessage(resMessage);
+        }
     };
 
     return (
@@ -168,13 +177,27 @@ const SignupPage = () => {
                         />
                     </div>
 
-                    <div className="form-group">
-                        <button className="btn btn-primary btn-block">Sign Up</button>
+                    <div className="form-group d-flex align-items-center gap-2">
+                        <button className="btn btn-primary btn-block" disabled={success}>
+                            Sign Up
+                        </button>
+                        {success && (
+                            <button
+                                type="button"
+                                className="btn btn-outline-secondary"
+                                onClick={() => navigate('/login')}
+                            >
+                                로그인 하러 가기
+                            </button>
+                        )}
                     </div>
 
                     {message && (
                         <div className="form-group">
-                            <div className="alert alert-danger" role="alert">
+                            <div
+                                className={`alert ${success ? 'alert-success' : 'alert-danger'}`}
+                                role="alert"
+                            >
                                 {message}
                             </div>
                         </div>

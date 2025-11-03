@@ -1,23 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthService from '../services/auth.service';
 
 const Header = () => {
-    const [currentUser, setCurrentUser] = useState(undefined);
+    const [currentUser, setCurrentUser] = useState(() => AuthService.getCurrentUser());
+    const [showAdminBoard, setShowAdminBoard] = useState(() =>
+        !!AuthService.getCurrentUser()?.roles?.includes('ADMIN')
+    );
     const navigate = useNavigate();
 
     useEffect(() => {
-        const user = AuthService.getCurrentUser();
-
-        if (user) {
+        const applyAuthState = () => {
+            const user = AuthService.getCurrentUser();
             setCurrentUser(user);
-        }
+            setShowAdminBoard(!!user?.roles?.includes('ADMIN'));
+        };
+
+        applyAuthState();
+        const unsubscribe = AuthService.onAuthChange(applyAuthState);
+
+        return () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        };
     }, []);
 
-    const logOut = () => {
-        AuthService.logout();
-        setCurrentUser(undefined);
-        navigate('/auth/login');
+    const logOut = async (event) => {
+        event.preventDefault();
+        await AuthService.logout();
+        navigate('/login', { replace: true });
     };
 
     return (
@@ -30,6 +42,11 @@ const Header = () => {
                             <li className="nav-item">
                                 <Link className="nav-link" to="/">Home</Link>
                             </li>
+                            {showAdminBoard && (
+                                <li className="nav-item">
+                                    <Link className="nav-link" to="/product-registration">상품 등록</Link>
+                                </li>
+                            )}
 
                             {currentUser ? (
                                 <>

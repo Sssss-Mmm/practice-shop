@@ -8,6 +8,12 @@ import SignupPage from './pages/SignupPage';
 import OAuth2RedirectHandler from './pages/OAuth2RedirectHandler';
 import ProfilePage from './pages/ProfilePage';
 import OAuth2RegisterPage from './pages/OAuth2RegisterPage';
+import ProductRegistrationPage from './pages/ProductRegistrationPage';
+import ProductDetailPage from './pages/ProductDetailPage';
+import EmailVerificationPage from './pages/EmailVerificationPage';
+import ResendVerificationPage from './pages/ResendVerificationPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 function App() {
   return (
@@ -21,6 +27,12 @@ function App() {
           <Route path="/auth/oauth2/redirect" element={<OAuth2RedirectHandler />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/auth/oauth2/register" element={<OAuth2RegisterPage />} />
+          <Route path="/product-registration" element={<ProductRegistrationPage />} />
+          <Route path="/products/:productId" element={<ProductDetailPage />} />
+          <Route path="/verify-email" element={<EmailVerificationPage />} />
+          <Route path="/resend-verification" element={<ResendVerificationPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </main>
       <Footer />

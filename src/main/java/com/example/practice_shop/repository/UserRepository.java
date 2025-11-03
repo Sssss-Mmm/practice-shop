@@ -10,4 +10,6 @@ import com.example.practice_shop.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     public Optional<User> findByEmail(String email);
+    public Optional<User> findByEmailVerificationToken(String token);
+    public Optional<User> findByPasswordResetToken(String token);
 }

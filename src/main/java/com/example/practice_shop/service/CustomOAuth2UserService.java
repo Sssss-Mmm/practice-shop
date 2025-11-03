@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -90,8 +91,16 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     .role(Role.USER) // 기본 역할을 USER로 설정
                     .status(Status.ACTIVE) // 계정 상태를 활성으로 설정
                     .build();
-            userRepository.save(user);
         }
+        if (!user.isEmailVerified()) {
+            user.setEmailVerified(true);
+            user.setEmailVerifiedAt(LocalDateTime.now());
+            user.setEmailVerificationToken(null);
+            user.setEmailVerificationExpiredAt(null);
+            user.setEmailVerificationSentAt(null);
+            user.setStatus(Status.ACTIVE);
+        }
+        userRepository.save(user);
         return user;
     }
 }

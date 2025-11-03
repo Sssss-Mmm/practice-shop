@@ -1,5 +1,6 @@
 package com.example.practice_shop.security;
 
+import com.example.practice_shop.constant.Role;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,8 +37,8 @@ public class JwtTokenProvider {
      * @param subject 토큰의 주체 (일반적으로 사용자 이메일)
      * @return 생성된 Access Token 문자열
      */
-    public String createAccessToken(String subject, String username) {
-        return createToken(subject, username, accessTokenValidity);
+    public String createAccessToken(String subject, String username, Role role) {
+        return createToken(subject, username, role, accessTokenValidity);
     }
 
     /**
@@ -45,8 +46,8 @@ public class JwtTokenProvider {
      * @param subject 토큰의 주체 (일반적으로 사용자 이메일)
      * @return 생성된 Refresh Token 문자열
      */
-    public String createRefreshToken(String subject, String username) {
-        return createToken(subject, username, refreshTokenValidity);
+    public String createRefreshToken(String subject, String username, Role role) {
+        return createToken(subject, username, role, refreshTokenValidity);
     }
 
     /**
@@ -54,8 +55,8 @@ public class JwtTokenProvider {
      * @param subject 토큰의 주체 (일반적으로 사용자 이메일)
      * @return 생성된 임시 등록 토큰 문자열
      */
-    public String createTemporaryRegistrationToken(String subject, String username) {
-        return createToken(subject, username, temporaryRegistrationTokenValidity);
+    public String createTemporaryRegistrationToken(String subject, String username, Role role) {
+        return createToken(subject, username, role, temporaryRegistrationTokenValidity);
     }
 
     /**
@@ -64,13 +65,15 @@ public class JwtTokenProvider {
      * @param validity 토큰의 유효 시간 (밀리초)
      * @return 생성된 JWT 문자열
      */
-    private String createToken(String subject, String username, long validity) {
+    private String createToken(String subject, String username, Role role, long validity) {
+        System.out.println("Role being added to token: " + role);
         Date now = new Date();
         Date expiry = new Date(now.getTime() + validity);
 
         return Jwts.builder()
                 .setSubject(subject) // 토큰 주체 설정 (이메일)
                 .claim("username", username) // 사용자 이름 클레임 추가
+                .claim("role", role) // 사용자 역할 클레임 추가
                 .setIssuedAt(now) // 토큰 발급 시간 설정
                 .setExpiration(expiry) // 토큰 만료 시간 설정
                 .signWith(key) // 서명 키 설정
@@ -121,5 +124,19 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)
                 .getBody()
                 .get("username", String.class); // username 클레임 반환
+    }
+
+    /**
+     * 토큰에서 사용자의 역할 정보를 추출합니다.
+     * @param token 정보를 추출할 JWT 문자열
+     * @return 추출된 사용자 역할
+     */
+    public String getRole(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class); // role 클레임 반환
     }
 }

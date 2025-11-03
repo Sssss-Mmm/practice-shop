@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AuthService from '../services/auth.service';
 import { jwtDecode } from 'jwt-decode';
 
 const OAuth2RedirectHandler = () => {
@@ -17,14 +18,8 @@ const OAuth2RedirectHandler = () => {
         if (token) {
             console.log('Token found in fragment:', token);
             try {
-                const decodedToken = jwtDecode(token);
-                const user = {
-                    accessToken: token,
-                    email: decodedToken.sub,
-                    username: decodedToken.username
-                };
-                console.log('User object to store:', user);
-                localStorage.setItem('user', JSON.stringify(user));
+                jwtDecode(token);
+                AuthService.persistUser(token, null);
                 console.log('User stored. Attempting delayed navigation to /...');
                 // Temporarily remove immediate navigate to debug fragment stripping
                 setTimeout(() => {

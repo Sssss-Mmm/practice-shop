@@ -11,9 +11,12 @@ import com.example.practice_shop.entity.User;
 import com.example.practice_shop.repository.UserRepository;
 import com.example.practice_shop.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -28,6 +31,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final EmailService emailService;
+
+    private static final Duration EMAIL_TOKEN_VALIDITY = Duration.ofHours(24);
+    private static final Duration PASSWORD_RESET_TOKEN_VALIDITY = Duration.ofHours(1);
+
+    @Value("${app.frontend.url:http://localhost:3000}")
+    private String frontendBaseUrl;
 
     /**
      * 로컬 사용자의 회원가입을 처리합니다.
@@ -53,9 +63,84 @@ public class UserService {
                 .role(signupRequest.getRole())
                 .provider(signupRequest.getProvider())
                 .providerId(signupRequest.getProviderId() != null ? signupRequest.getProviderId() : "local_" + UUID.randomUUID())
-                .status(Status.ACTIVE)
+                .status(Status.INACTIVE)
                 .build();
 
+        applyEmailVerificationWindow(user);
+        userRepository.save(user);
+
+        sendVerificationEmail(user);
+    }
+
+    public void resendEmailVerification(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 사용자를 찾을 수 없습니다."));
+
+        if (user.isEmailVerified()) {
+            throw new IllegalStateException("이미 이메일 인증이 완료되었습니다.");
+        }
+
+        applyEmailVerificationWindow(user);
+        userRepository.save(user);
+        sendVerificationEmail(user);
+    }
+
+    public void verifyEmail(String token) {
+        User user = userRepository.findByEmailVerificationToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 인증 토큰입니다."));
+
+        if (user.isEmailVerified()) {
+            return;
+        }
+
+        if (user.getEmailVerificationExpiredAt() != null
+                && user.getEmailVerificationExpiredAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("인증 토큰이 만료되었습니다. 이메일 인증을 다시 요청해 주세요.");
+        }
+
+        user.setEmailVerified(true);
+        user.setEmailVerifiedAt(LocalDateTime.now());
+        user.setEmailVerificationToken(null);
+        user.setEmailVerificationExpiredAt(null);
+        user.setEmailVerificationSentAt(null);
+        user.setStatus(Status.ACTIVE);
+        userRepository.save(user);
+    }
+
+    public void requestPasswordReset(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+
+        if (!user.isEmailVerified()) {
+            throw new IllegalStateException("이메일 인증을 완료한 이후에 비밀번호를 재설정할 수 있습니다.");
+        }
+
+        String token = generateToken();
+        LocalDateTime now = LocalDateTime.now();
+        user.setPasswordResetToken(token);
+        user.setPasswordResetExpiredAt(now.plus(PASSWORD_RESET_TOKEN_VALIDITY));
+        userRepository.save(user);
+
+        sendPasswordResetEmail(user);
+    }
+
+    public void resetPassword(String token, String newPassword) {
+        User user = userRepository.findByPasswordResetToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 재설정 토큰입니다."));
+
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new IllegalArgumentException("새로운 비밀번호를 입력해 주세요.");
+        }
+
+        if (user.getPasswordResetExpiredAt() == null
+                || user.getPasswordResetExpiredAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("재설정 토큰이 만료되었습니다. 비밀번호 재설정을 다시 요청해 주세요.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPasswordResetToken(null);
+        user.setPasswordResetExpiredAt(null);
+        user.setStatus(Status.ACTIVE);
         userRepository.save(user);
     }
 
@@ -68,10 +153,26 @@ public class UserService {
         // 이메일로 사용자 조회
         User user = userRepository.findByEmail(userLogin.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
-        // 비밀번호 검증
+
+        if (!"local".equalsIgnoreCase(user.getProvider())) {
+            throw new IllegalArgumentException("소셜 계정은 해당 플랫폼 로그인을 사용하세요.");
+        }
+
+        if (user.getPassword() == null || !passwordEncoder.matches(userLogin.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        if (!user.isEmailVerified()) {
+            throw new IllegalStateException("이메일 인증이 완료되지 않았습니다.");
+        }
+
+        if (user.getStatus() != Status.ACTIVE) {
+            throw new IllegalStateException("비활성화된 계정입니다.");
+        }
+
         // JWT 생성
-        String accessToken = jwtTokenProvider.createAccessToken(user.getEmail(), user.getName());
-        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getName());
+        String accessToken = jwtTokenProvider.createAccessToken(user.getEmail(), user.getName(), user.getRole());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getName(), user.getRole());
 
         // Refresh Token을 데이터베이스에 저장
         user.setRefreshToken(refreshToken);
@@ -137,11 +238,16 @@ public class UserService {
         user.setAddress(request.getAddress());
         user.setGender(request.getGender());
         user.setBirthDate(request.getBirthDate());
+        user.setStatus(Status.ACTIVE);
+        if (!user.isEmailVerified()) {
+            user.setEmailVerified(true);
+            user.setEmailVerifiedAt(LocalDateTime.now());
+        }
         userRepository.save(user);
 
         // JWT 생성
-        String accessToken = jwtTokenProvider.createAccessToken(user.getEmail(), user.getName());
-        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getName());
+        String accessToken = jwtTokenProvider.createAccessToken(user.getEmail(), user.getName(), user.getRole());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getName(), user.getRole());
 
         // Refresh Token을 데이터베이스에 저장
         user.setRefreshToken(refreshToken);
@@ -176,9 +282,13 @@ public class UserService {
             throw new IllegalArgumentException("Refresh Token이 일치하지 않습니다.");
         }
 
+        if (!user.isEmailVerified() || user.getStatus() != Status.ACTIVE) {
+            throw new IllegalStateException("비활성화된 계정입니다.");
+        }
+
         // 새로운 토큰 생성
-        String newAccessToken = jwtTokenProvider.createAccessToken(user.getEmail(), user.getName());
-        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getName());
+        String newAccessToken = jwtTokenProvider.createAccessToken(user.getEmail(), user.getName(), user.getRole());
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getName(), user.getRole());
 
         // 새로운 Refresh Token을 데이터베이스에 저장
         user.setRefreshToken(newRefreshToken);
@@ -198,20 +308,74 @@ public class UserService {
                 return UserProfileResponse.from(user);
             }
         
-            public UserProfileResponse updateUserProfile(String email, UserProfileUpdateRequest request) {
-                User user = userRepository.findByEmail(email)
-                        .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
-        
-                user.setNickname(request.getNickname());
+    public UserProfileResponse updateUserProfile(String email, UserProfileUpdateRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        user.setNickname(request.getNickname());
                 user.setPhoneNumber(request.getPhoneNumber());
                 user.setRegion(request.getRegion());
                 user.setAddress(request.getAddress());
                 user.setGender(request.getGender());
                 user.setBirthDate(request.getBirthDate());
-        
-                userRepository.save(user);
-        
-                return UserProfileResponse.from(user);
-            }
+
+        userRepository.save(user);
+
+        return UserProfileResponse.from(user);
+    }
+
+    private void applyEmailVerificationWindow(User user) {
+        String token = generateToken();
+        LocalDateTime now = LocalDateTime.now();
+        user.setEmailVerificationToken(token);
+        user.setEmailVerificationSentAt(now);
+        user.setEmailVerificationExpiredAt(now.plus(EMAIL_TOKEN_VALIDITY));
+        user.setEmailVerified(false);
+        if (user.getStatus() == Status.ACTIVE) {
+            user.setStatus(Status.INACTIVE);
         }
+    }
+
+    private void sendVerificationEmail(User user) {
+        String verificationLink = buildVerificationLink(user.getEmailVerificationToken());
+        String body = String.format(
+                "안녕하세요, %s님!\n\n아래 링크를 클릭하여 이메일 인증을 완료해 주세요:\n%s\n\n링크는 %d시간 동안 유효합니다.",
+                user.getName(),
+                verificationLink,
+                EMAIL_TOKEN_VALIDITY.toHours()
+        );
+        emailService.sendEmail(
+                user.getEmail(),
+                "Practice Shop 이메일 인증",
+                body
+        );
+    }
+
+    private void sendPasswordResetEmail(User user) {
+        String resetLink = buildPasswordResetLink(user.getPasswordResetToken());
+        String body = String.format(
+                "안녕하세요, %s님!\n\n아래 링크를 클릭하여 비밀번호를 재설정해 주세요:\n%s\n\n링크는 %d분 동안 유효합니다.",
+                user.getName(),
+                resetLink,
+                PASSWORD_RESET_TOKEN_VALIDITY.toMinutes()
+        );
+        emailService.sendEmail(
+                user.getEmail(),
+                "Practice Shop 비밀번호 재설정",
+                body
+        );
+    }
+
+    private String buildVerificationLink(String token) {
+        return String.format("%s/verify-email?token=%s", frontendBaseUrl, token);
+    }
+
+    private String buildPasswordResetLink(String token) {
+        return String.format("%s/reset-password?token=%s", frontendBaseUrl, token);
+    }
+
+    private String generateToken() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+}
         

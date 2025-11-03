@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import AuthService from '../services/auth.service';
 import { useNavigate } from 'react-router-dom';
+import AuthService from '../services/auth.service';
 
 const OAuth2RegisterPage = () => {
     const [temporaryToken, setTemporaryToken] = useState('');
@@ -12,57 +12,46 @@ const OAuth2RegisterPage = () => {
     const [gender, setGender] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [message, setMessage] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        console.log('OAuth2RegisterPage mounted.');
         const fragment = window.location.hash.substring(1);
         const params = new URLSearchParams(fragment);
         const token = params.get('token');
 
         if (token) {
-            console.log('Temporary token found:', token);
             setTemporaryToken(token);
         } else {
-            console.log('Temporary token not found in fragment.');
-            setMessage('Temporary token not found. Please try logging in again.');
-            // Optionally redirect to login page after a delay
-            // navigate('/login');
+            setMessage('임시 토큰을 찾을 수 없습니다. 다시 로그인해 주세요.');
         }
     }, []);
 
-    const handleCompleteRegistration = (e) => {
+    const handleCompleteRegistration = async (e) => {
         e.preventDefault();
         setMessage('');
+        setLoading(true);
 
-        AuthService.completeOAuth2Registration(
-            temporaryToken,
-            name,
-            phoneNumber,
-            nickname,
-            region,
-            address,
-            gender,
-            birthDate
-        ).then(
-            (response) => {
-                // Assuming response contains accessToken and refreshToken
-                if (response.accessToken) {
-                    localStorage.setItem('user', JSON.stringify(response));
-                    navigate('/');
-                    window.location.reload();
-                }
-            },
-            (error) => {
-                const resMessage =
-                    (error.response &&
-                        error.response.data &&
-                        error.response.data.message) ||
-                    error.message ||
-                    error.toString();
-                setMessage(resMessage);
-            }
-        );
+        try {
+            await AuthService.completeOAuth2Registration(temporaryToken, {
+                name,
+                phoneNumber,
+                nickname,
+                region,
+                address,
+                gender,
+                birthDate,
+            });
+            navigate('/', { replace: true });
+        } catch (error) {
+            const resMessage =
+                (error.response && error.response.data && error.response.data.message) ||
+                error.message ||
+                error.toString();
+            setMessage(resMessage);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -166,7 +155,9 @@ const OAuth2RegisterPage = () => {
                     </div>
 
                     <div className="form-group">
-                        <button className="btn btn-primary btn-block">Complete Registration</button>
+                        <button className="btn btn-primary btn-block" disabled={loading || !temporaryToken}>
+                            {loading ? 'Completing...' : 'Complete Registration'}
+                        </button>
                     </div>
 
                     {message && (

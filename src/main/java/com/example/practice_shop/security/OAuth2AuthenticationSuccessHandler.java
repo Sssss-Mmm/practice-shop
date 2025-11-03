@@ -49,8 +49,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // 사용자 프로필이 완성되었는지 확인
         if (isProfileComplete(user)) {
             // 해당 사용자에 대한 Access Token과 Refresh Token을 생성합니다.
-            String accessToken = jwtTokenProvider.createAccessToken(user.getEmail(), user.getName());
-            String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getName());
+            String accessToken = jwtTokenProvider.createAccessToken(user.getEmail(), user.getName(), user.getRole());
+            String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail(), user.getName(), user.getRole());
 
             // Refresh Token을 데이터베이스에 저장하여 추후 유효성 검증에 사용합니다.
             user.setRefreshToken(refreshToken);
@@ -63,7 +63,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                     .build().toUriString();
         } else {
             // 프로필이 불완전하면 임시 등록 토큰을 생성하고 추가 정보 입력 페이지로 리디렉션합니다.
-            String temporaryToken = jwtTokenProvider.createTemporaryRegistrationToken(user.getEmail(), user.getName());
+            String temporaryToken = jwtTokenProvider.createTemporaryRegistrationToken(user.getEmail(), user.getName(), user.getRole());
             targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/auth/oauth2/register")
                     .fragment("token=" + temporaryToken)
                     .build().toUriString();

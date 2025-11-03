@@ -1,36 +1,46 @@
 import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthService from '../services/auth.service';
-import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const [messageVariant, setMessageVariant] = useState('danger');
+    const location = useLocation();
     const navigate = useNavigate();
+
+    React.useEffect(() => {
+        if (location.state?.message) {
+            setMessage(location.state.message);
+            setMessageVariant(location.state.variant || 'success');
+        }
+    }, [location.state]);
 
     const handleLogin = (e) => {
         e.preventDefault();
 
         setMessage('');
+        setMessageVariant('danger');
         setLoading(true);
 
-        AuthService.login(email, password).then(
-            () => {
+        AuthService.login(email, password)
+            .then(() => {
+                setLoading(false);
                 navigate('/');
-            },
-            (error) => {
+            })
+            .catch((error) => {
                 const resMessage =
-                    (error.response &&
-                        error.response.data &&
-                        error.response.data.message) ||
+                    (error.response && error.response.data && error.response.data.message) ||
+                    (typeof error.response?.data === 'string' ? error.response.data : null) ||
                     error.message ||
                     error.toString();
 
                 setLoading(false);
                 setMessage(resMessage);
-            }
-        );
+                setMessageVariant('danger');
+            });
     };
 
     return (
@@ -78,12 +88,21 @@ const LoginPage = () => {
 
                     {message && (
                         <div className="form-group">
-                            <div className="alert alert-danger" role="alert">
+                            <div className={`alert alert-${messageVariant}`} role="alert">
                                 {message}
                             </div>
                         </div>
                     )}
                 </form>
+
+                <div className="d-flex justify-content-between mt-3 w-100">
+                    <Link to="/forgot-password" className="small">
+                        비밀번호를 잊으셨나요?
+                    </Link>
+                    <Link to="/resend-verification" className="small">
+                        인증 메일 다시 보내기
+                    </Link>
+                </div>
 
                 <div className="form-group mt-3">
                     <a href="http://localhost:8084/oauth2/authorization/google" className="btn btn-danger btn-block">

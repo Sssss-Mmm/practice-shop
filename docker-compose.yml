@@ -43,13 +43,21 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
     ports:
       - "8084:8084"
+    volumes:
+      - uploads_data:/app/uploads
     networks:
       - shop-network
 
 volumes:
   postgres_data:
+  uploads_data:
 
 networks:
   shop-network:

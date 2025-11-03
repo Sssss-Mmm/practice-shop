@@ -92,6 +92,35 @@ public class User extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private Status status = Status.ACTIVE; // 기본값 ACTIVE
 
+    /** 이메일 인증 여부 */
+    @Builder.Default
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+
+    /** 이메일 인증 토큰 */
+    @Column(name = "email_verification_token", length = 64)
+    private String emailVerificationToken;
+
+    /** 이메일 인증 토큰 발송 시각 */
+    @Column(name = "email_verification_sent_at")
+    private LocalDateTime emailVerificationSentAt;
+
+    /** 이메일 인증 토큰 만료 시각 */
+    @Column(name = "email_verification_expired_at")
+    private LocalDateTime emailVerificationExpiredAt;
+
+    /** 이메일 인증 완료 시각 */
+    @Column(name = "email_verified_at")
+    private LocalDateTime emailVerifiedAt;
+
+    /** 비밀번호 재설정 토큰 */
+    @Column(name = "password_reset_token", length = 64)
+    private String passwordResetToken;
+
+    /** 비밀번호 재설정 토큰 만료 시각 */
+    @Column(name = "password_reset_expired_at")
+    private LocalDateTime passwordResetExpiredAt;
+
     /** 마지막 로그인 시각 */
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
@@ -99,8 +128,11 @@ public class User extends BaseTimeEntity {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Cart cart;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews;
+
+    @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Product> products;
     
     /** 마지막 로그인 시각 */
     public void updateLastLoginAt() {
