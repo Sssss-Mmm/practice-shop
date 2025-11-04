@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthService from '../services/auth.service';
+import CartService from '../services/cart.service';
 
 const Header = () => {
     const [currentUser, setCurrentUser] = useState(() => AuthService.getCurrentUser());
     const [showAdminBoard, setShowAdminBoard] = useState(() =>
         !!AuthService.getCurrentUser()?.roles?.includes('ADMIN')
     );
+    const [cartCount, setCartCount] = useState(0);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -16,12 +18,49 @@ const Header = () => {
             setShowAdminBoard(!!user?.roles?.includes('ADMIN'));
         };
 
+        const updateCartCountFromResponse = (data) => {
+            if (data && typeof data.totalItems === 'number') {
+                setCartCount(data.totalItems);
+            } else if (data && Array.isArray(data.items)) {
+                setCartCount(data.items.reduce((sum, item) => sum + (item.quantity ?? 0), 0));
+            } else {
+                setCartCount(0);
+            }
+        };
+
+        const fetchInitialCart = () => {
+            const user = AuthService.getCurrentUser();
+            if (!user) {
+                setCartCount(0);
+                return;
+            }
+            CartService.getCart().then((response) => {
+                updateCartCountFromResponse(response.data);
+            }).catch(() => setCartCount(0));
+        };
+
         applyAuthState();
-        const unsubscribe = AuthService.onAuthChange(applyAuthState);
+        fetchInitialCart();
+
+        const unsubscribeAuth = AuthService.onAuthChange(() => {
+            applyAuthState();
+            fetchInitialCart();
+        });
+
+        const unsubscribeCart = CartService.onChange((payload) => {
+            if (payload) {
+                updateCartCountFromResponse(payload);
+            } else {
+                fetchInitialCart();
+            }
+        });
 
         return () => {
-            if (unsubscribe) {
-                unsubscribe();
+            if (unsubscribeAuth) {
+                unsubscribeAuth();
+            }
+            if (unsubscribeCart) {
+                unsubscribeCart();
             }
         };
     }, []);
@@ -29,6 +68,7 @@ const Header = () => {
     const logOut = async (event) => {
         event.preventDefault();
         await AuthService.logout();
+        setCartCount(0);
         navigate('/login', { replace: true });
     };
 
@@ -41,6 +81,11 @@ const Header = () => {
                         <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
                             <li className="nav-item">
                                 <Link className="nav-link" to="/">Home</Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link className="nav-link" to="/cart">
+                                    Cart{cartCount > 0 ? ` (${cartCount})` : ''}
+                                </Link>
                             </li>
                             {showAdminBoard && (
                                 <li className="nav-item">

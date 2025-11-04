@@ -14,6 +14,8 @@ import EmailVerificationPage from './pages/EmailVerificationPage';
 import ResendVerificationPage from './pages/ResendVerificationPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import CartPage from './pages/CartPage';
+import ProductEditPage from './pages/ProductEditPage';
 
 function App() {
   return (
@@ -29,10 +31,12 @@ function App() {
           <Route path="/auth/oauth2/register" element={<OAuth2RegisterPage />} />
           <Route path="/product-registration" element={<ProductRegistrationPage />} />
           <Route path="/products/:productId" element={<ProductDetailPage />} />
+          <Route path="/cart" element={<CartPage />} />
           <Route path="/verify-email" element={<EmailVerificationPage />} />
           <Route path="/resend-verification" element={<ResendVerificationPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="products/:productId/edit" element={<ProductEditPage />} />
         </Routes>
       </main>
       <Footer />

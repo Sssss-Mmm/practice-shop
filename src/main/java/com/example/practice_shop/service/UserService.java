@@ -307,26 +307,37 @@ public class UserService {
                         .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
                 return UserProfileResponse.from(user);
             }
-        
+    
+    /**
+     * 업데이트된 사용자 프로필 정보를 저장합니다.
+     * @param email
+     * @param request
+     * @return
+     */
     public UserProfileResponse updateUserProfile(String email, UserProfileUpdateRequest request) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
         user.setNickname(request.getNickname());
-                user.setPhoneNumber(request.getPhoneNumber());
-                user.setRegion(request.getRegion());
-                user.setAddress(request.getAddress());
-                user.setGender(request.getGender());
-                user.setBirthDate(request.getBirthDate());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setRegion(request.getRegion());
+        user.setAddress(request.getAddress());
+        user.setGender(request.getGender());
+        user.setBirthDate(request.getBirthDate());
 
         userRepository.save(user);
 
         return UserProfileResponse.from(user);
     }
-
+    /**
+     * 이메일 인증 토큰과 만료 시간을 설정합니다.
+     * @param user 사용자 엔티티
+     */
     private void applyEmailVerificationWindow(User user) {
+        // 고유한 토큰 생성
         String token = generateToken();
         LocalDateTime now = LocalDateTime.now();
+        // 토큰 및 만료 시간 설정
         user.setEmailVerificationToken(token);
         user.setEmailVerificationSentAt(now);
         user.setEmailVerificationExpiredAt(now.plus(EMAIL_TOKEN_VALIDITY));
@@ -335,8 +346,12 @@ public class UserService {
             user.setStatus(Status.INACTIVE);
         }
     }
-
+    /**
+     * 이메일 인증 메일을 전송합니다.
+     * @param user 사용자 엔티티
+     */
     private void sendVerificationEmail(User user) {
+        // 이메일 본문 구성
         String verificationLink = buildVerificationLink(user.getEmailVerificationToken());
         String body = String.format(
                 "안녕하세요, %s님!\n\n아래 링크를 클릭하여 이메일 인증을 완료해 주세요:\n%s\n\n링크는 %d시간 동안 유효합니다.",
@@ -344,14 +359,19 @@ public class UserService {
                 verificationLink,
                 EMAIL_TOKEN_VALIDITY.toHours()
         );
+        // 이메일 전송
         emailService.sendEmail(
                 user.getEmail(),
                 "Practice Shop 이메일 인증",
                 body
         );
     }
-
+    /**
+     * 비밀번호 재설정 이메일을 전송합니다.
+     * @param user 사용자 엔티티
+     */
     private void sendPasswordResetEmail(User user) {
+        // 이메일 본문 구성
         String resetLink = buildPasswordResetLink(user.getPasswordResetToken());
         String body = String.format(
                 "안녕하세요, %s님!\n\n아래 링크를 클릭하여 비밀번호를 재설정해 주세요:\n%s\n\n링크는 %d분 동안 유효합니다.",
@@ -359,21 +379,33 @@ public class UserService {
                 resetLink,
                 PASSWORD_RESET_TOKEN_VALIDITY.toMinutes()
         );
+        // 이메일 전송
         emailService.sendEmail(
                 user.getEmail(),
                 "Practice Shop 비밀번호 재설정",
                 body
         );
     }
-
+    /**
+     * 이메일 인증 링크를 생성합니다.
+     * @param token
+     * @return
+     */
     private String buildVerificationLink(String token) {
         return String.format("%s/verify-email?token=%s", frontendBaseUrl, token);
     }
-
+    /**
+     * 비밀번호 재설정 링크를 생성합니다.
+     * @param token
+     * @return
+     */
     private String buildPasswordResetLink(String token) {
         return String.format("%s/reset-password?token=%s", frontendBaseUrl, token);
     }
-
+    /**
+     * 고유한 토큰을 생성합니다.
+     * @return 생성된 토큰 문자열
+     */
     private String generateToken() {
         return UUID.randomUUID().toString().replace("-", "");
     }

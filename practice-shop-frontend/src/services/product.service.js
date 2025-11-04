@@ -3,8 +3,9 @@ import AuthService from "./auth.service";
 
 const API_URL = "/api/products";
 
-const getProducts = () => {
-    return axios.get(API_URL, { headers: AuthService.authHeader() });
+const getProducts = (page = 0, size = 12) => {
+    const params = new URLSearchParams({ page, size });
+    return axios.get(`${API_URL}?${params.toString()}`, { headers: AuthService.authHeader() });
 };
 
 const getProductById = (productId) => {
@@ -29,11 +30,18 @@ const updateProduct = (productId, formData) => {
     });
 };
 
+const deleteProduct = (productId) => {
+    return axios.delete(`${API_URL}/${productId}`, {
+        headers: AuthService.authHeader(),
+    });
+};
+
 const ProductService = {
     getProducts,
     getProductById,
     registerProduct,
     updateProduct,
+    deleteProduct,
 };
 
 export default ProductService;

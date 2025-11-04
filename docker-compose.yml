@@ -51,7 +51,7 @@ services:
     ports:
       - "8084:8084"
     volumes:
-      - uploads_data:/app/uploads
+      - ./uploads:/app/uploads
     networks:
       - shop-network
 

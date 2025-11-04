@@ -71,21 +71,21 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/auth/**", "/oauth2/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/", "/auth/**", "/oauth2/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/uploads/**").permitAll() // 인증 없이 접근 허용
+                .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll() // 상품 조회는 모두 허용
+                .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자 권한 필요
                 .anyRequest().authenticated()
             )
             .exceptionHandling(exceptions -> exceptions
                 .defaultAuthenticationEntryPointFor(
-                    new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
-                    new AntPathRequestMatcher("/api/**")
+                    new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), 
+                    new AntPathRequestMatcher("/api/**") // API 요청에 대해 401 응답 반환
                 )
             )
-            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
-            .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfo -> userInfo.userService(customOauth2UserService))
-                .successHandler(oAuth2AuthenticationSuccessHandler)
+            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class) // JWT 인증 필터 추가
+            .oauth2Login(oauth2 -> oauth2 // OAuth2 로그인 설정
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOauth2UserService)) // 커스텀 OAuth2UserService 설정
+                .successHandler(oAuth2AuthenticationSuccessHandler) // OAuth2 인증 성공 핸들러 설정
             );
 
         return http.build();

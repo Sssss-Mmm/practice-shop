@@ -2,12 +2,16 @@ package com.example.practice_shop.service;
 
 import com.example.practice_shop.dtos.Product.ProductRegistrationRequest;
 import com.example.practice_shop.dtos.Product.ProductResponse;
+import com.example.practice_shop.dtos.common.PagedResponse;
 import com.example.practice_shop.entity.Product;
 import com.example.practice_shop.entity.User;
 import com.example.practice_shop.repository.ProductRepository;
 import com.example.practice_shop.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -28,10 +33,26 @@ public class ProductService {
 
     private final String UPLOAD_DIR = "./uploads/";
 
-    public List<ProductResponse> getProducts() {
-        return productRepository.findAll().stream()
+    public PagedResponse<ProductResponse> getProducts(int page, int size) {
+        int validatedPage = Math.max(page, 0);
+        int validatedSize = Math.min(Math.max(size, 1), 50);
+
+        PageRequest pageRequest = PageRequest.of(validatedPage, validatedSize, Sort.by(Sort.Direction.DESC, "id"));
+
+        Page<Product> productPage = productRepository.findAll(pageRequest);
+
+        List<ProductResponse> content = productPage.stream()
                 .map(ProductResponse::from)
                 .collect(Collectors.toList());
+
+        return PagedResponse.<ProductResponse>builder()
+                .content(content)
+                .page(productPage.getNumber())
+                .size(productPage.getSize())
+                .totalElements(productPage.getTotalElements())
+                .totalPages(productPage.getTotalPages())
+                .last(productPage.isLast())
+                .build();
     }
 
     public ProductResponse getProductById(Long productId) {
@@ -96,16 +117,42 @@ public class ProductService {
             return null;
         }
         try {
-            String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
+            String originalFilename = imageFile.getOriginalFilename();
+            String safeFilename = normalizeFilename(originalFilename);
+            String fileName = UUID.randomUUID() + "_" + safeFilename;
             Path uploadPath = Paths.get(UPLOAD_DIR);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
             Path filePath = uploadPath.resolve(fileName);
-            Files.copy(imageFile.getInputStream(), filePath);
+            Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
             return "/uploads/" + fileName;
         } catch (IOException e) {
             throw new RuntimeException("Failed to store image file", e);
         }
+    }
+
+    private String normalizeFilename(String originalFilename) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            return "image";
+        }
+
+        String trimmed = originalFilename.trim();
+        String extension = "";
+        int lastDot = trimmed.lastIndexOf('.');
+        if (lastDot != -1 && lastDot < trimmed.length() - 1) {
+            extension = trimmed.substring(lastDot);
+            trimmed = trimmed.substring(0, lastDot);
+        }
+
+        String sanitizedBase = trimmed.replaceAll("[^a-zA-Z0-9._-]", "_");
+        sanitizedBase = sanitizedBase.replaceAll("_+", "_");
+        sanitizedBase = sanitizedBase.replaceAll("^_|_$", "");
+
+        if (sanitizedBase.isBlank()) {
+            sanitizedBase = "image";
+        }
+
+        return sanitizedBase + extension.toLowerCase();
     }
 }

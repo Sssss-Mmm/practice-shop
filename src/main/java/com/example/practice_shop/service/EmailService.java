@@ -13,11 +13,19 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class EmailService {
 
+    /** JavaMailSender 빈 주입 */
     private final JavaMailSender mailSender;
 
+    /** 발신자 주소 설정 */
     @Value("${mail.from-address:${spring.mail.username:}}")
     private String fromAddress;
 
+    /**
+     * 이메일을 전송합니다.
+     * @param to 수신자 이메일 주소
+     * @param subject 이메일 제목
+     * @param body 이메일 본문
+     */
     public void sendEmail(String to, String subject, String body) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();

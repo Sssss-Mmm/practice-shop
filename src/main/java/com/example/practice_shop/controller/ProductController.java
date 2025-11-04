@@ -2,6 +2,7 @@ package com.example.practice_shop.controller;
 
 import com.example.practice_shop.dtos.Product.ProductRegistrationRequest;
 import com.example.practice_shop.dtos.Product.ProductResponse;
+import com.example.practice_shop.dtos.common.PagedResponse;
 import com.example.practice_shop.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -22,8 +22,10 @@ public class ProductController {
 
     @GetMapping
     @Operation(summary = "상품 목록 조회", description = "모든 상품 목록을 조회합니다.")
-    public ResponseEntity<List<ProductResponse>> getProducts() {
-        return ResponseEntity.ok(productService.getProducts());
+    public ResponseEntity<PagedResponse<ProductResponse>> getProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
+        return ResponseEntity.ok(productService.getProducts(page, size));
     }
 
     @GetMapping("/{productId}")
@@ -33,12 +35,13 @@ public class ProductController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')") // 관리자 권한 필요
     @Operation(summary = "상품 등록", description = "새로운 상품을 등록합니다.")
     public ResponseEntity<?> registerProduct(
             @RequestPart("request") ProductRegistrationRequest request,
-            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile,
-            Authentication authentication) {
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile, // 이미지 파일은 선택 사항
+            Authentication authentication // 인증 정보 
+            ) {
         productService.registerProduct(request, imageFile, authentication.getName());
         return ResponseEntity.ok().build();
     }
