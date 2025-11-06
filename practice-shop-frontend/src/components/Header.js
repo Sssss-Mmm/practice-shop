@@ -87,6 +87,11 @@ const Header = () => {
                                     Cart{cartCount > 0 ? ` (${cartCount})` : ''}
                                 </Link>
                             </li>
+                            <li className="nav-item">
+                                <Link className="nav-link" to="/orders">
+                                    Orders
+                                </Link>
+                            </li>
                             {showAdminBoard && (
                                 <li className="nav-item">
                                     <Link className="nav-link" to="/product-registration">상품 등록</Link>

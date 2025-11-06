@@ -152,7 +152,7 @@ const CartPage = () => {
                     <button className="cart-button secondary" onClick={handleClear}>
                         장바구니 비우기
                     </button>
-                    <button className="cart-button primary" onClick={() => alert('주문 기능은 준비 중입니다.')}>
+                    <button className="cart-button primary" onClick={() => navigate('/checkout')}>
                         주문하기
                     </button>
                 </div>

@@ -39,4 +39,6 @@ public class Product extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
+
+    private int stockQuantity;
 }
