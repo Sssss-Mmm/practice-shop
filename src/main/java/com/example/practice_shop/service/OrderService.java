@@ -35,6 +35,12 @@ public class OrderService {
     private final CartRepository cartRepository;
     private final CartService cartService;
 
+    /**
+     * 주문 생성
+     * @param email
+     * @param request
+     * @return
+     */
     @Transactional
     public OrderResponse createOrder(String email, OrderCreateRequest request) {
         User user = findUser(email);
@@ -91,7 +97,14 @@ public class OrderService {
 
         return toResponse(savedOrder);
     }
-
+    
+    /**
+     * 주문 목록 조회
+     * @param email
+     * @param page
+     * @param size
+     * @return
+     */
     @Transactional(readOnly = true)
     public PagedResponse<OrderResponse> getOrders(String email, int page, int size) {
         User user = findUser(email);
@@ -115,6 +128,12 @@ public class OrderService {
                 .build();
     }
 
+    /**
+     * 주문 상세 조회
+     * @param email
+     * @param orderId
+     * @return
+     */
     @Transactional(readOnly = true)
     public OrderResponse getOrderDetail(String email, Long orderId) {
         User user = findUser(email);
@@ -122,12 +141,39 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
         return toResponse(order);
     }
+    
+    /**
+     * 주문 취소
+     * @param email
+     * @param orderId
+     */
+    @Transactional
+    public void cancelOrder(String email, Long orderId) {
+        User user = findUser(email);
+        Order order = orderRepository.findByIdAndUser(orderId, user)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+        if (order.getOrderStatus() == OrderStatus.CANCELED) {
+            throw new IllegalStateException("이미 취소된 주문입니다.");
+        }
+        order.setOrderStatus(OrderStatus.CANCELED);
+        order.setPaymentStatus(PaymentStatus.REFUNDED);
+    }
 
+    /**
+     * 사용자 조회
+     * @param email
+     * @return
+     */
     private User findUser(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 
+    /**
+     * Order 를 OrderResponse 로 변환
+     * @param order
+     * @return
+     */
     private OrderResponse toResponse(Order order) {
         List<OrderItemResponse> itemResponses = order.getOrderItems().stream()
                 .map(orderItem -> {

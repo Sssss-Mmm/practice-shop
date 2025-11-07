@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,4 +49,13 @@ public class OrderController {
         String email = authentication.getName();
         return ResponseEntity.ok(orderService.getOrderDetail(email, orderId));
     }
+
+    @PutMapping("/{orderId}")
+    @Operation(summary = "주문 취소", description = "특정 주문을 취소합니다.")
+    public ResponseEntity<Void> cancelOrder(Authentication authentication,
+                                            @PathVariable Long orderId) {
+        String email = authentication.getName();
+        orderService.cancelOrder(email, orderId);
+        return ResponseEntity.ok().build();
+    }                                        
 }

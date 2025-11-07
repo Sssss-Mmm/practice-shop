@@ -31,6 +31,11 @@ public class CartService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
 
+    /**
+     * 장바구니 조회
+     * @param email
+     * @return
+     */
     @Transactional(readOnly = true)
     public CartResponse getCart(String email) {
         User user = getUserByEmail(email);
@@ -56,6 +61,12 @@ public class CartService {
                 .build();
     }
 
+    /**
+     * 장바구니에 상품 추가
+     * @param email
+     * @param request
+     * @return
+     */
     @Transactional
     public CartItemResponse addItem(String email, CartItemRequest request) {
         User user = getUserByEmail(email);
@@ -85,6 +96,13 @@ public class CartService {
         return toResponse(saved);
     }
 
+    /**
+     * 장바구니 항목 수량 수정
+     * @param email
+     * @param cartItemId
+     * @param request
+     * @return
+     */
     @Transactional
     public CartItemResponse updateItemQuantity(String email, Long cartItemId, CartItemUpdateRequest request) {
         CartItem cartItem = getCartItemForUser(email, cartItemId);
@@ -93,12 +111,21 @@ public class CartService {
         return toResponse(cartItem);
     }
 
+    /**
+     * 장바구니 항목 삭제
+     * @param email
+     * @param cartItemId
+     */
     @Transactional
     public void removeItem(String email, Long cartItemId) {
         CartItem cartItem = getCartItemForUser(email, cartItemId);
         cartItemRepository.delete(cartItem);
     }
-
+    
+    /**
+     * 장바구니 비우기
+     * @param email
+     */
     @Transactional
     public void clearCart(String email) {
         User user = getUserByEmail(email);
@@ -111,11 +138,21 @@ public class CartService {
         });
     }
 
+    /**
+     * 이메일로 사용자 조회
+     * @param email
+     * @return
+     */
     private User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 
+    /**
+     * 카트 초기화
+     * @param user
+     * @return
+     */
     private Cart initializeCart(User user) {
         Cart cart = Cart.builder()
                 .user(user)
@@ -125,6 +162,12 @@ public class CartService {
         return cartRepository.save(cart);
     }
 
+    /**
+     * CartItem 가져오기 및 사용자 검증
+     * @param email
+     * @param cartItemId
+     * @return
+     */
     private CartItem getCartItemForUser(String email, Long cartItemId) {
         User user = getUserByEmail(email);
         CartItem cartItem = cartItemRepository.findById(cartItemId)
@@ -138,6 +181,11 @@ public class CartService {
         return cartItem;
     }
 
+    /**
+     * CartItem 를 CartItemResponse 로 변환
+     * @param cartItem
+     * @return
+     */
     private CartItemResponse toResponse(CartItem cartItem) {
         Product product = cartItem.getProduct();
         int subtotal = product.getPrice() * cartItem.getCount();

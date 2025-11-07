@@ -71,7 +71,10 @@ public class UserService {
 
         sendVerificationEmail(user);
     }
-
+    /**
+     * 이메일 인증 재전송
+     * @param email
+     */
     public void resendEmailVerification(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 사용자를 찾을 수 없습니다."));
@@ -85,6 +88,10 @@ public class UserService {
         sendVerificationEmail(user);
     }
 
+    /**
+     * 이메일 인증 처리
+     * @param token
+     */
     public void verifyEmail(String token) {
         User user = userRepository.findByEmailVerificationToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 인증 토큰입니다."));
@@ -107,6 +114,10 @@ public class UserService {
         userRepository.save(user);
     }
 
+    /**
+     * 비밀번호 재설정 요청
+     * @param email
+     */
     public void requestPasswordReset(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
@@ -124,6 +135,11 @@ public class UserService {
         sendPasswordResetEmail(user);
     }
 
+    /**
+     * 비밀번호 재설정
+     * @param token
+     * @param newPassword
+     */
     public void resetPassword(String token, String newPassword) {
         User user = userRepository.findByPasswordResetToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 재설정 토큰입니다."));
@@ -212,6 +228,7 @@ public class UserService {
         user.setRefreshToken(null);
         userRepository.save(user);
     }
+
     /**
      * OAuth2 사용자의 추가 정보 등록을 처리하고 JWT 토큰을 발급합니다.
      * @param request OAuth2 등록 요청 정보 DTO
@@ -260,6 +277,7 @@ public class UserService {
 
         return response;
     }
+
     /**
      * 만료된 Access Token을 갱신하고 새로운 토큰을 발급합니다.
      * @param refreshToken 클라이언트로부터 받은 Refresh Token
@@ -329,6 +347,7 @@ public class UserService {
 
         return UserProfileResponse.from(user);
     }
+
     /**
      * 이메일 인증 토큰과 만료 시간을 설정합니다.
      * @param user 사용자 엔티티
@@ -346,6 +365,7 @@ public class UserService {
             user.setStatus(Status.INACTIVE);
         }
     }
+
     /**
      * 이메일 인증 메일을 전송합니다.
      * @param user 사용자 엔티티
@@ -366,6 +386,7 @@ public class UserService {
                 body
         );
     }
+
     /**
      * 비밀번호 재설정 이메일을 전송합니다.
      * @param user 사용자 엔티티
@@ -386,6 +407,7 @@ public class UserService {
                 body
         );
     }
+
     /**
      * 이메일 인증 링크를 생성합니다.
      * @param token
@@ -394,6 +416,7 @@ public class UserService {
     private String buildVerificationLink(String token) {
         return String.format("%s/verify-email?token=%s", frontendBaseUrl, token);
     }
+
     /**
      * 비밀번호 재설정 링크를 생성합니다.
      * @param token
@@ -402,6 +425,7 @@ public class UserService {
     private String buildPasswordResetLink(String token) {
         return String.format("%s/reset-password?token=%s", frontendBaseUrl, token);
     }
+    
     /**
      * 고유한 토큰을 생성합니다.
      * @return 생성된 토큰 문자열

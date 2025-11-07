@@ -33,6 +33,12 @@ public class ProductService {
 
     private final String UPLOAD_DIR = "./uploads/";
 
+    /**
+     * 상품 목록 조회
+     * @param page
+     * @param size
+     * @return
+     */
     public PagedResponse<ProductResponse> getProducts(int page, int size) {
         int validatedPage = Math.max(page, 0);
         int validatedSize = Math.min(Math.max(size, 1), 50);
@@ -54,13 +60,23 @@ public class ProductService {
                 .last(productPage.isLast())
                 .build();
     }
-
+    /**
+     * 상품 상세 조회
+     * @param productId
+     * @return
+     */
     public ProductResponse getProductById(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         return ProductResponse.from(product);
     }
 
+    /**
+     * 상품 등록
+     * @param request
+     * @param imageFile
+     * @param username
+     */
     @Transactional
     public void registerProduct(ProductRegistrationRequest request, MultipartFile imageFile, String username) {
         User seller = userRepository.findByEmail(username).orElseThrow(() -> new RuntimeException("User not found"));
@@ -78,6 +94,13 @@ public class ProductService {
         productRepository.save(product);
     }
 
+    /**
+     * 상품 수정
+     * @param productId
+     * @param request
+     * @param imageFile
+     * @param username
+     */
     @Transactional
     public void updateProduct(Long productId, ProductRegistrationRequest request, MultipartFile imageFile, String username) {
         Product product = productRepository.findById(productId)
@@ -100,6 +123,11 @@ public class ProductService {
         productRepository.save(product);
     }
 
+    /**
+     * 상품 삭제
+     * @param productId
+     * @param username
+     */
     @Transactional
     public void deleteProduct(Long productId, String username) {
         Product product = productRepository.findById(productId)
@@ -112,6 +140,11 @@ public class ProductService {
         productRepository.delete(product);
     }
 
+    /**
+     * 이미지 저장
+     * @param imageFile
+     * @return
+     */
     private String saveImage(MultipartFile imageFile) {
         if (imageFile == null || imageFile.isEmpty()) {
             return null;
@@ -132,6 +165,11 @@ public class ProductService {
         }
     }
 
+    /**
+     * 파일명 정규화
+     * @param originalFilename
+     * @return
+     */
     private String normalizeFilename(String originalFilename) {
         if (originalFilename == null || originalFilename.isBlank()) {
             return "image";
