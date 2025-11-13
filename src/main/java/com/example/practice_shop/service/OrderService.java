@@ -92,6 +92,11 @@ public class OrderService {
         order.setTotalPrice(totalPrice);
         Order savedOrder = orderRepository.save(order);
 
+        // 누적 결제 금액/등급 갱신
+        long increment = totalPrice.longValue();
+        user.accumulateSpend(increment);
+        userRepository.save(user);
+
         // 장바구니 비우기
         cartService.clearCart(email);
 

@@ -86,11 +86,31 @@ public class User extends BaseTimeEntity {
     @Column(name = "birth_date", nullable = true)
     private String birthDate;
 
+    /** 프로필 이미지 URL */
+    @Column(name = "profile_image_url", nullable = true)
+    private String profileImageUrl;
+
+    /** 사용자 등급 */
+    @Column(name = "user_grade", nullable = false)
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    private UserGrade userGrade = UserGrade.BASIC; // 기본값 BASIC
+
+    /** 누적 결제 금액 */
+    @Column(name = "total_spend", nullable = false)
+    @Builder.Default
+    private Long totalSpend = 0L;
+
     /** 상태 */
     @Builder.Default
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Status status = Status.ACTIVE; // 기본값 ACTIVE
+
+    /** 포인트 */
+    @Column(name = "points", nullable = false)
+    @Builder.Default
+    private Integer points = 0; // 기본값 0
 
     /** 이메일 인증 여부 */
     @Builder.Default
@@ -138,4 +158,16 @@ public class User extends BaseTimeEntity {
     public void updateLastLoginAt() {
         this.lastLoginAt = LocalDateTime.now();
     }
+
+    public void accumulateSpend(long amount) {
+        if (amount <= 0) {
+            return;
+        }
+        if (this.totalSpend == null) {
+            this.totalSpend = 0L;
+        }
+        this.totalSpend += amount;
+        this.userGrade = UserGrade.fromTotalSpend(this.totalSpend);
+    }
+    
 }
