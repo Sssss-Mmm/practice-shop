@@ -68,6 +68,10 @@ public class Order extends BaseTimeEntity {
 
     /** 결제 정보 */
     private String paymentMethod;
+    
+    /** PG 결제 키 */
+    @Column(length = 128)
+    private String paymentKey;
 
     /** 주문 상품 목록 */
     @Builder.Default

@@ -48,6 +48,7 @@ services:
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       MAIL_FROM: ${MAIL_FROM}
+      TOSS_SECRET_KEY: ${TOSS_SECRET_KEY}
     ports:
       - "8084:8084"
     volumes:

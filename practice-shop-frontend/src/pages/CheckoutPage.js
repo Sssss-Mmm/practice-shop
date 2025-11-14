@@ -11,6 +11,7 @@ const CheckoutPage = () => {
     const [error, setError] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState('');
+    const [tossReady, setTossReady] = useState(false);
     const [form, setForm] = useState({
         recipientName: '',
         contactNumber: '',
@@ -19,6 +20,7 @@ const CheckoutPage = () => {
         deliveryInstructions: '',
         paymentMethod: 'CARD',
     });
+    const tossClientKey = process.env.REACT_APP_TOSS_CLIENT_KEY;
 
     const resolveImageUrl = (relativeUrl) => {
         if (!relativeUrl) {
@@ -56,9 +58,80 @@ const CheckoutPage = () => {
         loadCart();
     }, []);
 
+    useEffect(() => {
+        if (window.TossPayments) {
+            setTossReady(true);
+            return;
+        }
+        const interval = setInterval(() => {
+            if (window.TossPayments) {
+                setTossReady(true);
+                clearInterval(interval);
+            }
+        }, 200);
+        const timeout = setTimeout(() => {
+            if (!window.TossPayments) {
+                setError((prev) => prev ?? '토스 결제 모듈을 불러오지 못했습니다.');
+            }
+        }, 5000);
+        return () => {
+            clearInterval(interval);
+            clearTimeout(timeout);
+        };
+    }, []);
+
     const handleChange = (event) => {
         const { name, value } = event.target;
         setForm((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const mapTossPaymentType = (method) => {
+        switch (method) {
+            case 'BANK_TRANSFER':
+                return '계좌이체';
+            case 'CASH':
+                return '가상계좌';
+            default:
+                return '카드';
+        }
+    };
+
+    const buildOrderName = (order) => {
+        if (!order?.items || order.items.length === 0) {
+            return 'Practice Shop 주문';
+        }
+        if (order.items.length === 1) {
+            return order.items[0].productName;
+        }
+        return `${order.items[0].productName} 외 ${order.items.length - 1}건`;
+    };
+
+    const requestTossPayment = (order) => {
+        if (!window.TossPayments || !tossClientKey) {
+            const msg = '토스 결제 모듈이 준비되지 않았습니다.';
+            setError(msg);
+            return Promise.reject(new Error(msg));
+        }
+        const tossPayments = window.TossPayments(tossClientKey);
+        const amount = Number(order?.totalPrice ?? 0);
+        if (!amount || amount <= 0) {
+            const msg = '결제 금액이 올바르지 않습니다.';
+            setError(msg);
+            return Promise.reject(new Error(msg));
+        }
+        const orderIdentifier = `ORD-${order.orderId}`;
+        const successUrl = `${window.location.origin}/payments/toss/success`;
+        const failUrl = `${window.location.origin}/payments/toss/fail`;
+
+        return tossPayments.requestPayment(mapTossPaymentType(form.paymentMethod), {
+            amount,
+            orderId: orderIdentifier,
+            orderName: buildOrderName(order),
+            customerName: form.recipientName || '구매자',
+            customerMobilePhone: form.contactNumber,
+            successUrl,
+            failUrl,
+        });
     };
 
     const handleSubmit = (event) => {
@@ -67,30 +140,35 @@ const CheckoutPage = () => {
             setMessage('장바구니가 비어 있어 주문을 진행할 수 없습니다.');
             return;
         }
+        if (!tossClientKey) {
+            setError('환경변수에 토스 클라이언트 키가 설정되어 있지 않습니다.');
+            return;
+        }
+        if (!tossReady) {
+            setError('결제 모듈이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+            return;
+        }
         setSubmitting(true);
-        setMessage('');
+        setMessage('주문 정보를 생성하고 있습니다...');
+        setError(null);
         OrderService.createOrder(form)
             .then((response) => {
-                const order = response.data;
-                setMessage('주문이 완료되었습니다. 주문 내역 페이지로 이동합니다.');
-                CartService.getCart();
-                setTimeout(() => {
-                    if (order?.orderId) {
-                        navigate(`/orders/${order.orderId}`, { replace: true });
-                    } else {
-                        navigate('/orders', { replace: true });
-                    }
-                }, 1000);
+                setMessage('토스 결제창으로 이동합니다.');
+                return requestTossPayment(response.data);
             })
             .catch((err) => {
-                const status = err.response?.status;
-                const resMessage =
-                    status === 401
-                        ? '로그인이 필요합니다.'
-                        : (err.response && err.response.data && err.response.data.message) ||
-                          err.message ||
-                          err.toString();
-                setError(resMessage);
+                if (err?.response) {
+                    const status = err.response?.status;
+                    const resMessage =
+                        status === 401
+                            ? '로그인이 필요합니다.'
+                            : err.response?.data?.message || err.message || err.toString();
+                    setError(resMessage);
+                } else if (err?.message && !err?.response) {
+                    setError(err.message);
+                } else {
+                    setError('주문 처리 중 오류가 발생했습니다.');
+                }
             })
             .finally(() => setSubmitting(false));
     };
@@ -206,8 +284,8 @@ const CheckoutPage = () => {
                         <option value="CASH">무통장 입금</option>
                     </select>
 
-                    <button className="checkout-button primary" type="submit" disabled={submitting}>
-                        {submitting ? '주문 처리 중...' : '주문 완료'}
+                    <button className="checkout-button primary" type="submit" disabled={submitting || !tossReady}>
+                        {submitting ? '결제 요청 중...' : '토스로 결제하기'}
                     </button>
 
                     {message && <p className="checkout-message">{message}</p>}

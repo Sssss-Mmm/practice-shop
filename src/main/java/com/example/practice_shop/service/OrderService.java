@@ -5,6 +5,8 @@ import com.example.practice_shop.constant.PaymentStatus;
 import com.example.practice_shop.dtos.Order.OrderCreateRequest;
 import com.example.practice_shop.dtos.Order.OrderItemResponse;
 import com.example.practice_shop.dtos.Order.OrderResponse;
+import com.example.practice_shop.dtos.Payment.TossPaymentConfirmRequest;
+import com.example.practice_shop.dtos.Payment.TossPaymentConfirmResponse;
 import com.example.practice_shop.dtos.common.PagedResponse;
 import com.example.practice_shop.entity.Cart;
 import com.example.practice_shop.entity.CartItem;
@@ -12,6 +14,7 @@ import com.example.practice_shop.entity.Order;
 import com.example.practice_shop.entity.OrderItem;
 import com.example.practice_shop.entity.Product;
 import com.example.practice_shop.entity.User;
+import com.example.practice_shop.integration.toss.TossPaymentClient;
 import com.example.practice_shop.repository.CartRepository;
 import com.example.practice_shop.repository.OrderRepository;
 import com.example.practice_shop.repository.UserRepository;
@@ -34,6 +37,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CartRepository cartRepository;
     private final CartService cartService;
+    private final TossPaymentClient tossPaymentClient;
 
     /**
      * 주문 생성
@@ -55,7 +59,7 @@ public class OrderService {
         Order order = Order.builder()
                 .user(user)
                 .orderStatus(OrderStatus.PENDING)
-                .paymentStatus(PaymentStatus.PAID)
+                .paymentStatus(PaymentStatus.PENDING)
                 .shippingAddress(request.getShippingAddress())
                 .contactNumber(request.getContactNumber())
                 .recipientName(request.getRecipientName())
@@ -73,7 +77,6 @@ public class OrderService {
             if (product.getStockQuantity() < quantity) {
                 throw new IllegalArgumentException("재고가 부족한 상품이 있습니다: " + product.getProductName());
             }
-            product.setStockQuantity(product.getStockQuantity() - quantity);
 
             BigDecimal unitPrice = BigDecimal.valueOf(product.getPrice());
             BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
@@ -92,15 +95,44 @@ public class OrderService {
         order.setTotalPrice(totalPrice);
         Order savedOrder = orderRepository.save(order);
 
-        // 누적 결제 금액/등급 갱신
-        long increment = totalPrice.longValue();
-        user.accumulateSpend(increment);
-        userRepository.save(user);
-
-        // 장바구니 비우기
-        cartService.clearCart(email);
-
         return toResponse(savedOrder);
+    }
+
+    /**
+     * 토스 결제 승인 처리
+     */
+    @Transactional
+    public OrderResponse confirmTossPayment(String email, TossPaymentConfirmRequest request) {
+        User user = findUser(email);
+        Long orderId = extractOrderId(request.getOrderId());
+        Order order = orderRepository.findByIdAndUser(orderId, user)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+
+        if (order.getPaymentStatus() == PaymentStatus.PAID) {
+            return toResponse(order);
+        }
+
+        validatePaymentAmount(order, request.getAmount());
+
+        try {
+            TossPaymentConfirmResponse tossResponse = tossPaymentClient.confirmPayment(request);
+            deductStock(order);
+            order.setPaymentStatus(PaymentStatus.PAID);
+            order.setOrderStatus(OrderStatus.PROCESSING);
+            order.setPaymentKey(tossResponse.getPaymentKey());
+            orderRepository.save(order);
+
+            long increment = order.getTotalPrice().longValue();
+            user.accumulateSpend(increment);
+            userRepository.save(user);
+
+            cartService.clearCart(email);
+            return toResponse(order);
+        } catch (RuntimeException ex) {
+            order.setPaymentStatus(PaymentStatus.FAILED);
+            orderRepository.save(order);
+            throw ex;
+        }
     }
     
     /**
@@ -210,5 +242,44 @@ public class OrderService {
                 .createdAt(order.getCreatedAt())
                 .items(itemResponses)
                 .build();
+    }
+
+    private void deductStock(Order order) {
+        for (OrderItem orderItem : order.getOrderItems()) {
+            Product product = orderItem.getProduct();
+            int quantity = orderItem.getCount();
+            if (product.getStockQuantity() < quantity) {
+                throw new IllegalStateException("결제 처리 중 품절된 상품이 있습니다: " + product.getProductName());
+            }
+            product.setStockQuantity(product.getStockQuantity() - quantity);
+        }
+    }
+
+    private void validatePaymentAmount(Order order, Long paidAmount) {
+        if (paidAmount == null) {
+            throw new IllegalArgumentException("결제 금액이 필요합니다.");
+        }
+        BigDecimal expected = order.getTotalPrice();
+        if (expected == null) {
+            throw new IllegalStateException("주문 금액이 설정되지 않았습니다.");
+        }
+        if (expected.compareTo(BigDecimal.valueOf(paidAmount)) != 0) {
+            throw new IllegalStateException("결제 금액이 일치하지 않습니다.");
+        }
+    }
+
+    private Long extractOrderId(String orderIdToken) {
+        if (orderIdToken == null || orderIdToken.isBlank()) {
+            throw new IllegalArgumentException("주문 번호가 필요합니다.");
+        }
+        try {
+            String normalized = orderIdToken.trim();
+            if (normalized.toUpperCase().startsWith("ORD-")) {
+                normalized = normalized.substring(4);
+            }
+            return Long.parseLong(normalized);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("유효하지 않은 주문 번호 형식입니다.");
+        }
     }
 }

@@ -19,6 +19,8 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrdersPage from './pages/OrdersPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import ProductEditPage from './pages/ProductEditPage';
+import TossSuccessPage from './pages/TossSuccessPage';
+import TossFailPage from './pages/TossFailPage';
 
 function App() {
   return (
@@ -38,6 +40,8 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/:orderId" element={<OrderDetailPage />} />
+          <Route path="/payments/toss/success" element={<TossSuccessPage />} />
+          <Route path="/payments/toss/fail" element={<TossFailPage />} />
           <Route path="/verify-email" element={<EmailVerificationPage />} />
           <Route path="/resend-verification" element={<ResendVerificationPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />

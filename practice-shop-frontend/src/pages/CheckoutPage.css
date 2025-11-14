@@ -95,3 +95,10 @@
     margin-top: 0.5rem;
     color: #28a745;
 }
+
+.checkout-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
