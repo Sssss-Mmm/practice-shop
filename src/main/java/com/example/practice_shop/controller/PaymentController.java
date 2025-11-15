@@ -20,6 +20,12 @@ public class PaymentController {
 
     private final OrderService orderService;
 
+    /**
+     * 토스 결제 승인
+     * @param authentication
+     * @param request
+     * @return
+     */
     @PostMapping("/toss/confirm")
     @Operation(summary = "토스 결제 승인", description = "토스 결제 성공 후 결제 내역을 검증하고 주문을 확정합니다.")
     public ResponseEntity<OrderResponse> confirmTossPayment(Authentication authentication,

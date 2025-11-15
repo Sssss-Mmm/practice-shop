@@ -100,6 +100,9 @@ public class OrderService {
 
     /**
      * 토스 결제 승인 처리
+     * @param email
+     * @param request
+     * @return
      */
     @Transactional
     public OrderResponse confirmTossPayment(String email, TossPaymentConfirmRequest request) {
@@ -243,7 +246,10 @@ public class OrderService {
                 .items(itemResponses)
                 .build();
     }
-
+    /**
+     * 재고 차감
+     * @param order
+     */
     private void deductStock(Order order) {
         for (OrderItem orderItem : order.getOrderItems()) {
             Product product = orderItem.getProduct();
@@ -255,6 +261,11 @@ public class OrderService {
         }
     }
 
+    /**
+     * 결제 금액 검증
+     * @param order
+     * @param paidAmount
+     */
     private void validatePaymentAmount(Order order, Long paidAmount) {
         if (paidAmount == null) {
             throw new IllegalArgumentException("결제 금액이 필요합니다.");
@@ -267,7 +278,11 @@ public class OrderService {
             throw new IllegalStateException("결제 금액이 일치하지 않습니다.");
         }
     }
-
+    /**
+     * 주문 번호에서 실제 주문 ID 추출
+     * @param orderIdToken
+     * @return
+     */
     private Long extractOrderId(String orderIdToken) {
         if (orderIdToken == null || orderIdToken.isBlank()) {
             throw new IllegalArgumentException("주문 번호가 필요합니다.");

@@ -9,7 +9,6 @@ import lombok.Setter;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TossPaymentConfirmResponse {
-
     private String mId;
     private String lastTransactionKey;
     private String paymentKey;

@@ -19,15 +19,28 @@ import java.util.Base64;
 @Component
 @RequiredArgsConstructor
 public class TossPaymentClient {
-
+    /**
+     * HTTP 통신을 위한 RestTemplate
+     */
     private final RestTemplate restTemplate;
 
+    /**
+     * 토스 시크릿 키
+     */
     @Value("${toss.payments.secret-key:}")
     private String secretKey;
 
+    /**
+     * 토스 결제 승인 URL
+     */
     @Value("${toss.payments.confirm-url:https://api.tosspayments.com/v1/payments/confirm}")
     private String confirmUrl;
 
+    /**
+     * 토스 결제 승인 요청
+     * @param request 결제 승인 요청 정보
+     * @return 결제 승인 응답 정보
+     */
     public TossPaymentConfirmResponse confirmPayment(TossPaymentConfirmRequest request) {
         if (secretKey == null || secretKey.isBlank()) {
             throw new IllegalStateException("토스 시크릿 키가 설정되지 않았습니다.");
@@ -51,6 +64,10 @@ public class TossPaymentClient {
         }
     }
 
+    /**
+     * Basic Auth 헤더 생성
+     * @return
+     */
     private String buildBasicAuthHeader() {
         String credential = secretKey + ":";
         String encoded = Base64.getEncoder().encodeToString(credential.getBytes(StandardCharsets.UTF_8));
