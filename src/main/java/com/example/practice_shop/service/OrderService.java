@@ -110,11 +110,12 @@ public class OrderService {
         Long orderId = extractOrderId(request.getOrderId());
         Order order = orderRepository.findByIdAndUser(orderId, user)
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
-
+        // 이미 결제가 완료된 주문인 경우 바로 응답 반환
         if (order.getPaymentStatus() == PaymentStatus.PAID) {
             return toResponse(order);
         }
-
+    
+        // 결제 금액 검증
         validatePaymentAmount(order, request.getAmount());
 
         try {
@@ -215,6 +216,7 @@ public class OrderService {
      * @return
      */
     private OrderResponse toResponse(Order order) {
+        // 주문 아이템 응답 리스트 생성
         List<OrderItemResponse> itemResponses = order.getOrderItems().stream()
                 .map(orderItem -> {
                     int quantity = orderItem.getCount();

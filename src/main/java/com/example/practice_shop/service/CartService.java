@@ -144,6 +144,7 @@ public class CartService {
      * @return
      */
     private User getUserByEmail(String email) {
+        // 사용자 조회
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
@@ -154,6 +155,7 @@ public class CartService {
      * @return
      */
     private Cart initializeCart(User user) {
+        // 새로운 카트 생성
         Cart cart = Cart.builder()
                 .user(user)
                 .cartItems(new ArrayList<>())
@@ -169,7 +171,10 @@ public class CartService {
      * @return
      */
     private CartItem getCartItemForUser(String email, Long cartItemId) {
+        
         User user = getUserByEmail(email);
+
+        // CartItem 조회
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new IllegalArgumentException("장바구니 항목을 찾을 수 없습니다."));
 
@@ -187,7 +192,10 @@ public class CartService {
      * @return
      */
     private CartItemResponse toResponse(CartItem cartItem) {
+        // 상품 정보 가져오기
         Product product = cartItem.getProduct();
+
+        // 소계 계산
         int subtotal = product.getPrice() * cartItem.getCount();
         return CartItemResponse.builder()
                 .cartItemId(cartItem.getId())

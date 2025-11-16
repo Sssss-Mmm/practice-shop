@@ -28,6 +28,7 @@ public class EmailService {
      */
     public void sendEmail(String to, String subject, String body) {
         try {
+            // 이메일 메시지 생성
             SimpleMailMessage message = new SimpleMailMessage();
             if (StringUtils.hasText(fromAddress)) {
                 message.setFrom(fromAddress);
