@@ -44,7 +44,7 @@ public class CartService {
         List<CartItemResponse> itemResponses = new ArrayList<>();
         long totalPrice = 0;
         int totalItems = 0;
-
+        // 장바구니 항목 변환 및 총합 계산
         if (cart.getCartItems() != null) {
             for (CartItem item : cart.getCartItems()) {
                 CartItemResponse response = toResponse(item);
@@ -53,7 +53,7 @@ public class CartService {
                 totalPrice += response.getSubtotal();
             }
         }
-
+        // CartResponse 생성
         return CartResponse.builder()
                 .items(itemResponses)
                 .totalItems(totalItems)
@@ -71,16 +71,18 @@ public class CartService {
     public CartItemResponse addItem(String email, CartItemRequest request) {
         User user = getUserByEmail(email);
         Cart cart = cartRepository.findByUser(user).orElseGet(() -> initializeCart(user));
-
+        // 장바구니 항목 리스트 초기화
         if (cart.getCartItems() == null) {
             cart.setCartItems(new ArrayList<>());
         }
-
+        // 상품 조회
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
 
+        // 기존 장바구니 항목 확인
         Optional<CartItem> existingItemOpt = cartItemRepository.findByCartAndProduct(cart, product);
         CartItem cartItem;
+        // 기존 항목이 있으면 수량 증가, 없으면 새 항목 추가
         if (existingItemOpt.isPresent()) {
             cartItem = existingItemOpt.get();
             cartItem.setCount(cartItem.getCount() + request.getQuantity());
@@ -92,6 +94,7 @@ public class CartService {
                     .build();
             cart.getCartItems().add(cartItem);
         }
+        // 장바구니 항목 저장
         CartItem saved = cartItemRepository.save(cartItem);
         return toResponse(saved);
     }
@@ -105,8 +108,10 @@ public class CartService {
      */
     @Transactional
     public CartItemResponse updateItemQuantity(String email, Long cartItemId, CartItemUpdateRequest request) {
+        // 장바구니 항목 조회 및 사용자 검증
         CartItem cartItem = getCartItemForUser(email, cartItemId);
         cartItem.setCount(request.getQuantity());
+        // 장바구니 항목 저장
         cartItemRepository.save(cartItem);
         return toResponse(cartItem);
     }
@@ -118,6 +123,7 @@ public class CartService {
      */
     @Transactional
     public void removeItem(String email, Long cartItemId) {
+        // 장바구니 항목 조회 및 사용자 검증
         CartItem cartItem = getCartItemForUser(email, cartItemId);
         cartItemRepository.delete(cartItem);
     }
@@ -129,6 +135,7 @@ public class CartService {
     @Transactional
     public void clearCart(String email) {
         User user = getUserByEmail(email);
+        // 사용자 장바구니 조회
         cartRepository.findByUser(user).ifPresent(cart -> {
             if (cart.getCartItems() != null && !cart.getCartItems().isEmpty()) {
                 cartItemRepository.deleteAll(cart.getCartItems());
@@ -171,7 +178,7 @@ public class CartService {
      * @return
      */
     private CartItem getCartItemForUser(String email, Long cartItemId) {
-        
+        // 사용자 조회
         User user = getUserByEmail(email);
 
         // CartItem 조회

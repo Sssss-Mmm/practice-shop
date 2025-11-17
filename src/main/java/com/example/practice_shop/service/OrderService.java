@@ -148,17 +148,18 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public PagedResponse<OrderResponse> getOrders(String email, int page, int size) {
+        // 사용자 조회
         User user = findUser(email);
         int validatedPage = Math.max(page, 0);
         int validatedSize = Math.min(Math.max(size, 1), 50);
-
+        // 페이징 및 정렬 설정
         PageRequest pageRequest = PageRequest.of(validatedPage, validatedSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Order> orderPage = orderRepository.findByUserOrderByCreatedAtDesc(user, pageRequest);
-
+        // 주문 응답 리스트 생성
         List<OrderResponse> content = orderPage.stream()
                 .map(this::toResponse)
                 .toList();
-
+        // 페이징 응답 생성 및 반환
         return PagedResponse.<OrderResponse>builder()
                 .content(content)
                 .page(orderPage.getNumber())

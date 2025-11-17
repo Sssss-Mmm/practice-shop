@@ -92,6 +92,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     .status(Status.ACTIVE) // 계정 상태를 활성으로 설정
                     .build();
         }
+        // 이메일 인증 상태 업데이트
         if (!user.isEmailVerified()) {
             user.setEmailVerified(true);
             user.setEmailVerifiedAt(LocalDateTime.now());

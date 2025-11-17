@@ -79,10 +79,11 @@ public class ProductService {
      */
     @Transactional
     public void registerProduct(ProductRegistrationRequest request, MultipartFile imageFile, String username) {
+        // 판매자 조회
         User seller = userRepository.findByEmail(username).orElseThrow(() -> new RuntimeException("User not found"));
-
+        // 이미지 저장
         String imageUrl = saveImage(imageFile);
-
+        // 상품 엔티티 생성 및 저장
         Product product = new Product();
         product.setProductName(request.getProductName());
         product.setPrice(request.getPrice());
@@ -103,18 +104,20 @@ public class ProductService {
      */
     @Transactional
     public void updateProduct(Long productId, ProductRegistrationRequest request, MultipartFile imageFile, String username) {
+        // 상품 조회
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
+        // 판매자 검증
         if (!Objects.equals(product.getSeller().getEmail(), username)) {
             throw new RuntimeException("You are not authorized to update this product");
         }
-
+        // 상품 정보 업데이트
         product.setProductName(request.getProductName());
         product.setPrice(request.getPrice());
         product.setStatus(request.getStatus());
         product.setDescription(request.getDescription());
 
+        // 이미지 업데이트
         if (imageFile != null && !imageFile.isEmpty()) {
             String imageUrl = saveImage(imageFile);
             product.setImageUrl(imageUrl);
@@ -130,9 +133,10 @@ public class ProductService {
      */
     @Transactional
     public void deleteProduct(Long productId, String username) {
+        // 상품 조회
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
+        // 판매자 검증
         if (!Objects.equals(product.getSeller().getEmail(), username)) {
             throw new RuntimeException("You are not authorized to delete this product");
         }
@@ -146,10 +150,12 @@ public class ProductService {
      * @return
      */
     private String saveImage(MultipartFile imageFile) {
+        // 이미지 파일이 없으면 null 반환
         if (imageFile == null || imageFile.isEmpty()) {
             return null;
         }
         try {
+            // 파일명 생성 및 저장
             String originalFilename = imageFile.getOriginalFilename();
             String safeFilename = normalizeFilename(originalFilename);
             String fileName = UUID.randomUUID() + "_" + safeFilename;
@@ -171,10 +177,10 @@ public class ProductService {
      * @return
      */
     private String normalizeFilename(String originalFilename) {
+        // 기본 파일명 설정
         if (originalFilename == null || originalFilename.isBlank()) {
             return "image";
         }
-
         String trimmed = originalFilename.trim();
         String extension = "";
         int lastDot = trimmed.lastIndexOf('.');
