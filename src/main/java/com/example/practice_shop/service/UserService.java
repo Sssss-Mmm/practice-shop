@@ -333,9 +333,10 @@ public class UserService {
      * @return
      */
     public UserProfileResponse updateUserProfile(String email, UserProfileUpdateRequest request) {
+        // 이메일로 사용자 조회
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
-
+        // 사용자 정보 업데이트
         user.setNickname(request.getNickname());
         user.setPhoneNumber(request.getPhoneNumber());
         user.setRegion(request.getRegion());
@@ -394,6 +395,7 @@ public class UserService {
     private void sendPasswordResetEmail(User user) {
         // 이메일 본문 구성
         String resetLink = buildPasswordResetLink(user.getPasswordResetToken());
+        // 이메일 본문 구성
         String body = String.format(
                 "안녕하세요, %s님!\n\n아래 링크를 클릭하여 비밀번호를 재설정해 주세요:\n%s\n\n링크는 %d분 동안 유효합니다.",
                 user.getName(),

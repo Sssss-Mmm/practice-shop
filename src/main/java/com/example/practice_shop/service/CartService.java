@@ -184,7 +184,7 @@ public class CartService {
         // CartItem 조회
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new IllegalArgumentException("장바구니 항목을 찾을 수 없습니다."));
-
+        // 사용자 소유 여부 검증
         if (cartItem.getCart() == null || cartItem.getCart().getUser() == null
                 || !cartItem.getCart().getUser().getEmail().equals(user.getEmail())) {
             throw new IllegalArgumentException("해당 장바구니 항목에 대한 권한이 없습니다.");
