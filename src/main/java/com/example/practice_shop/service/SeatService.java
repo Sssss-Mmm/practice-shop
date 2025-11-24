@@ -19,6 +19,11 @@ public class SeatService {
     private final SeatRepository seatRepository;
     private final VenueRepository venueRepository;
 
+    /**
+     * 새 좌석 생성
+     * @param request
+     * @return
+     */
     @Transactional
     public SeatResponse create(SeatRequest request) {
         Venue venue = venueRepository.findById(request.getVenueId())
@@ -39,6 +44,11 @@ public class SeatService {
         return toResponse(seatRepository.save(seat));
     }
 
+    /**
+     * 공연장별 좌석 목록 조회
+     * @param venueId
+     * @return
+     */
     @Transactional(readOnly = true)
     public List<SeatResponse> listByVenue(Long venueId) {
         Venue venue = venueRepository.findById(venueId)
@@ -48,6 +58,11 @@ public class SeatService {
                 .toList();
     }
 
+    /**
+     * Seat 엔티티를 SeatResponse DTO로 변환
+     * @param seat
+     * @return
+     */
     private SeatResponse toResponse(Seat seat) {
         return SeatResponse.builder()
                 .seatId(seat.getId())

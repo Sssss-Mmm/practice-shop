@@ -15,6 +15,11 @@ public class VenueService {
 
     private final VenueRepository venueRepository;
 
+    /**
+     * 새 공연장 생성
+     * @param request
+     * @return
+     */
     @Transactional
     public VenueResponse create(VenueRequest request) {
         Venue venue = Venue.builder()
@@ -31,20 +36,32 @@ public class VenueService {
         return toResponse(venueRepository.save(venue));
     }
 
+    /**
+     * 공연장 조회
+     * @param venueId
+     * @return
+     */
     @Transactional(readOnly = true)
     public VenueResponse get(Long venueId) {
         Venue venue = venueRepository.findById(venueId)
                 .orElseThrow(() -> new IllegalArgumentException("공연장을 찾을 수 없습니다."));
         return toResponse(venue);
     }
-
+    /**
+     * 공연장 목록 조회
+     * @return
+     */
     @Transactional(readOnly = true)
     public List<VenueResponse> list() {
         return venueRepository.findAll().stream()
                 .map(this::toResponse)
                 .toList();
     }
-
+    /**
+     * Venue 엔티티를 VenueResponse DTO로 변환
+     * @param venue
+     * @return
+     */
     private VenueResponse toResponse(Venue venue) {
         return VenueResponse.builder()
                 .venueId(venue.getId())

@@ -19,6 +19,11 @@ public class EventService {
     private final EventRepository eventRepository;
     private final VenueRepository venueRepository;
 
+    /**
+     * 새 공연 생성
+     * @param request
+     * @return
+     */
     @Transactional
     public EventResponse create(EventRequest request) {
         Venue venue = venueRepository.findById(request.getVenueId())
@@ -41,7 +46,12 @@ public class EventService {
 
         return toResponse(eventRepository.save(event));
     }
-
+    
+    /**
+     * 공연 조회
+     * @param eventId
+     * @return
+     */
     @Transactional(readOnly = true)
     public EventResponse get(Long eventId) {
         Event event = eventRepository.findById(eventId)
@@ -49,12 +59,22 @@ public class EventService {
         return toResponse(event);
     }
 
+    /**
+     * 공연 목록 조회
+     * @param status
+     * @return
+     */
     @Transactional(readOnly = true)
     public List<EventResponse> list(EventStatus status) {
         List<Event> events = (status == null) ? eventRepository.findAll() : eventRepository.findByStatus(status);
         return events.stream().map(this::toResponse).toList();
     }
 
+    /**
+     * Event 엔티티를 EventResponse DTO로 변환
+     * @param event
+     * @return
+     */
     private EventResponse toResponse(Event event) {
         return EventResponse.builder()
                 .eventId(event.getId())

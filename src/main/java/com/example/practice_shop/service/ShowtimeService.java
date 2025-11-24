@@ -22,6 +22,11 @@ public class ShowtimeService {
     private final EventRepository eventRepository;
     private final VenueRepository venueRepository;
 
+    /**
+     * 새 회차 생성
+     * @param request
+     * @return
+     */
     @Transactional
     public ShowtimeResponse create(ShowtimeRequest request) {
         Event event = eventRepository.findById(request.getEventId())
@@ -44,14 +49,22 @@ public class ShowtimeService {
 
         return toResponse(showtimeRepository.save(showtime));
     }
-
+    /**
+     * 회차 조회
+     * @param showtimeId
+     * @return
+     */
     @Transactional(readOnly = true)
     public ShowtimeResponse get(Long showtimeId) {
         Showtime showtime = showtimeRepository.findById(showtimeId)
                 .orElseThrow(() -> new IllegalArgumentException("회차를 찾을 수 없습니다."));
         return toResponse(showtime);
     }
-
+    /**
+     * 이벤트별 회차 목록 조회
+     * @param eventId
+     * @return
+     */
     @Transactional(readOnly = true)
     public List<ShowtimeResponse> listByEvent(Long eventId) {
         Event event = eventRepository.findById(eventId)
@@ -61,7 +74,11 @@ public class ShowtimeService {
                 .map(this::toResponse)
                 .toList();
     }
-
+    /**
+     * Showtime 엔티티를 ShowtimeResponse DTO로 변환
+     * @param showtime
+     * @return
+     */
     private ShowtimeResponse toResponse(Showtime showtime) {
         return ShowtimeResponse.builder()
                 .showtimeId(showtime.getId())
