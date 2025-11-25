@@ -24,18 +24,33 @@ public class EventController {
 
     private final EventService eventService;
 
+    /**
+     * 공연 등록
+     * @param request
+     * @return
+     */
     @PostMapping
     @Operation(summary = "공연 등록")
     public ResponseEntity<EventResponse> create(@Valid @RequestBody EventRequest request) {
         return ResponseEntity.ok(eventService.create(request));
     }
 
+    /**
+     * 공연 목록 조회
+     * @param status
+     * @return
+     */
     @GetMapping
     @Operation(summary = "공연 목록 조회")
     public ResponseEntity<List<EventResponse>> list(@RequestParam(required = false) EventStatus status) {
         return ResponseEntity.ok(eventService.list(status));
     }
-
+    
+    /**
+     * 공연 상세 조회
+     * @param eventId
+     * @return
+     */
     @GetMapping("/{eventId}")
     @Operation(summary = "공연 상세 조회")
     public ResponseEntity<EventResponse> get(@PathVariable Long eventId) {

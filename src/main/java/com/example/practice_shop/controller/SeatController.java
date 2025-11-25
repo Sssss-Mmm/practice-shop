@@ -22,12 +22,22 @@ public class SeatController {
 
     private final SeatService seatService;
 
+    /**
+     * 좌석 등록
+     * @param request
+     * @return
+     */
     @PostMapping
     @Operation(summary = "좌석 등록")
     public ResponseEntity<SeatResponse> create(@Valid @RequestBody SeatRequest request) {
         return ResponseEntity.ok(seatService.create(request));
     }
 
+    /**
+     * 공연장별 좌석 목록 조회
+     * @param venueId
+     * @return
+     */
     @GetMapping("/venue/{venueId}")
     @Operation(summary = "공연장별 좌석 목록")
     public ResponseEntity<List<SeatResponse>> listByVenue(@PathVariable Long venueId) {

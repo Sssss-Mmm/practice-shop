@@ -22,18 +22,33 @@ public class ShowtimeController {
 
     private final ShowtimeService showtimeService;
 
+    /**
+     * 회차 등록
+     * @param request
+     * @return
+     */
     @PostMapping
     @Operation(summary = "회차 등록")
     public ResponseEntity<ShowtimeResponse> create(@Valid @RequestBody ShowtimeRequest request) {
         return ResponseEntity.ok(showtimeService.create(request));
     }
 
+    /**
+     * 회차 상세 조회
+     * @param showtimeId
+     * @return
+     */
     @GetMapping("/{showtimeId}")
     @Operation(summary = "회차 상세 조회")
     public ResponseEntity<ShowtimeResponse> get(@PathVariable Long showtimeId) {
         return ResponseEntity.ok(showtimeService.get(showtimeId));
     }
-
+    
+    /**
+     * 공연별 회차 목록 조회
+     * @param eventId
+     * @return
+     */
     @GetMapping("/event/{eventId}")
     @Operation(summary = "공연별 회차 목록")
     public ResponseEntity<List<ShowtimeResponse>> listByEvent(@PathVariable Long eventId) {
