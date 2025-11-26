@@ -21,6 +21,10 @@ import OrderDetailPage from './pages/OrderDetailPage';
 import ProductEditPage from './pages/ProductEditPage';
 import TossSuccessPage from './pages/TossSuccessPage';
 import TossFailPage from './pages/TossFailPage';
+import VenueAdminPage from './pages/VenueAdminPage';
+import EventAdminPage from './pages/EventAdminPage';
+import ShowtimeAdminPage from './pages/ShowtimeAdminPage';
+import SeatAdminPage from './pages/SeatAdminPage';
 
 function App() {
   return (
@@ -42,6 +46,10 @@ function App() {
           <Route path="/orders/:orderId" element={<OrderDetailPage />} />
           <Route path="/payments/toss/success" element={<TossSuccessPage />} />
           <Route path="/payments/toss/fail" element={<TossFailPage />} />
+          <Route path="/admin/venues" element={<VenueAdminPage />} />
+          <Route path="/admin/events" element={<EventAdminPage />} />
+          <Route path="/admin/showtimes" element={<ShowtimeAdminPage />} />
+          <Route path="/admin/seats" element={<SeatAdminPage />} />
           <Route path="/verify-email" element={<EmailVerificationPage />} />
           <Route path="/resend-verification" element={<ResendVerificationPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
