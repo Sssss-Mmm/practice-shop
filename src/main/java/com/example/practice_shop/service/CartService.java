@@ -36,7 +36,7 @@ public class CartService {
      * @param email
      * @return
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public CartResponse getCart(String email) {
         User user = getUserByEmail(email);
         Cart cart = cartRepository.findByUser(user).orElseGet(() -> initializeCart(user));

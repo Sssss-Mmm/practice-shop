@@ -93,8 +93,17 @@ const Header = () => {
                                 </Link>
                             </li>
                             {showAdminBoard && (
-                                <li className="nav-item">
-                                    <Link className="nav-link" to="/product-registration">상품 등록</Link>
+                                <li className="nav-item dropdown">
+                                    <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Admin
+                                    </a>
+                                    <ul className="dropdown-menu dropdown-menu-end">
+                                        <li><Link className="dropdown-item" to="/product-registration">상품 등록</Link></li>
+                                        <li><Link className="dropdown-item" to="/admin/venues">공연장 관리</Link></li>
+                                        <li><Link className="dropdown-item" to="/admin/events">공연 관리</Link></li>
+                                        <li><Link className="dropdown-item" to="/admin/showtimes">회차 관리</Link></li>
+                                        <li><Link className="dropdown-item" to="/admin/seats">좌석 관리</Link></li>
+                                    </ul>
                                 </li>
                             )}
 
