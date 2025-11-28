@@ -72,6 +72,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/auth/**", "/oauth2/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/uploads/**").permitAll() // 인증 없이 접근 허용
+                .requestMatchers("/ws/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll() // 상품 조회는 모두 허용
                 .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자 권한 필요
                 .anyRequest().authenticated()
