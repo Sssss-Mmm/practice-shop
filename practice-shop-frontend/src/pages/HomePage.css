@@ -1,81 +1,109 @@
 .homepage-container {
-    padding: 20px 40px;
-    background-color: #f4f4f9;
+    background-color: #f8f9fa;
 }
 
-.promotional-banner {
-    background: linear-gradient(45deg, #667eea, #764ba2);
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=2070&auto=format&fit=crop') no-repeat center center;
+    background-size: cover;
     color: white;
-    padding: 50px 40px;
+    padding: 6rem 1rem;
     text-align: center;
-    margin-bottom: 50px;
-    border-radius: 12px;
 }
 
-.promotional-banner h1 {
+.search-container h1 {
     font-size: 2.5rem;
-    margin-bottom: 10px;
+    font-weight: 700;
+    margin-bottom: 2rem;
 }
 
-.category-section {
-    margin-bottom: 50px;
+.search-bar {
+    display: flex;
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 50px;
+    padding: 0.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-.category-title {
+.search-bar .search-icon {
+    color: #6c757d;
+    font-size: 1.2rem;
+    margin: auto 1rem;
+}
+
+.search-bar input {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    background: transparent;
+}
+
+.search-bar button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-bar button:hover {
+    background-color: #0056b3;
+}
+
+.section-title {
     font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 25px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #ddd;
-    color: #333;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-align: center;
 }
 
-.event-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 30px;
-}
-
-.event-card-link {
+.card-link {
     text-decoration: none;
     color: inherit;
 }
 
-.event-card {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
+.product-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: none;
+    border-radius: 15px;
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.event-card:hover {
+.product-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 
-.event-image {
-    width: 100%;
-    height: 320px;
+.product-card .card-img-top {
+    height: 300px;
     object-fit: cover;
 }
 
-.event-info {
-    padding: 20px;
+.product-card .card-body {
+    display: flex;
+    flex-direction: column;
 }
 
-.event-name {
+.product-card .card-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    flex-grow: 1;
+}
+
+.product-card .card-text {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.product-card .price {
+    font-weight: 700;
     font-size: 1.2rem;
-    font-weight: bold;
-    margin: 0 0 8px 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.event-venue {
-    font-size: 0.95rem;
-    color: #666;
-    margin: 0;
+    color: #343a40;
 }

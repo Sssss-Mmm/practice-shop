@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
-import HomePage from './pages/HomePage';
+import HomePage from './pages/HomePage'; // 이 부분이 새 홈페이지를 불러오도록 합니다.
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import OAuth2RedirectHandler from './pages/OAuth2RedirectHandler';
@@ -38,7 +38,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/auth/oauth2/register" element={<OAuth2RegisterPage />} />
         <Route path="/product-registration" element={<ProductRegistrationPage />} />
-        <Route path="/products/:productId" element={<ProductDetailPage />} />
+        <Route path="/products/:id" element={<ProductDetailPage />} /> {/* 새로운 상세 페이지 경로 */}
         <Route path="/events/:eventId" element={<EventDetailPage />} />
         <Route path="/book/showtime/:showtimeId/seats" element={<SeatSelectionPage />} />
         <Route path="/cart" element={<CartPage />} />

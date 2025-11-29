@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthService from '../services/auth.service';
+import './AuthPages.css';
 
 const OAuth2RegisterPage = () => {
     const [temporaryToken, setTemporaryToken] = useState('');
@@ -55,19 +56,15 @@ const OAuth2RegisterPage = () => {
     };
 
     return (
-        <div className="col-md-12">
-            <div className="card card-container">
-                <img
-                    src="//ssl.gstatic.com/accounts/ui/avatar_2x.png"
-                    alt="profile-img"
-                    className="profile-img-card"
-                />
+        <div className="ticket-auth-container">
+            <div className="ticket-auth-card">
+                <h2 className="text-center mb-4">추가 정보 입력</h2>
 
                 <form onSubmit={handleCompleteRegistration}>
-                    <p>Please provide additional information to complete your registration.</p>
+                    <p className="text-center text-muted mb-4">회원가입을 완료하려면 추가 정보를 입력해주세요.</p>
 
-                    <div className="form-group">
-                        <label htmlFor="name">Name</label>
+                    <div className="form-group mb-3">
+                        <label htmlFor="name">이름</label>
                         <input
                             type="text"
                             className="form-control"
@@ -78,8 +75,8 @@ const OAuth2RegisterPage = () => {
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="phoneNumber">Phone Number</label>
+                    <div className="form-group mb-3">
+                        <label htmlFor="phoneNumber">전화번호</label>
                         <input
                             type="text"
                             className="form-control"
@@ -90,8 +87,8 @@ const OAuth2RegisterPage = () => {
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="nickname">Nickname</label>
+                    <div className="form-group mb-3">
+                        <label htmlFor="nickname">닉네임</label>
                         <input
                             type="text"
                             className="form-control"
@@ -102,8 +99,8 @@ const OAuth2RegisterPage = () => {
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="region">Region</label>
+                    <div className="form-group mb-3">
+                        <label htmlFor="region">지역</label>
                         <input
                             type="text"
                             className="form-control"
@@ -114,8 +111,8 @@ const OAuth2RegisterPage = () => {
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="address">Address</label>
+                    <div className="form-group mb-3">
+                        <label htmlFor="address">상세주소</label>
                         <input
                             type="text"
                             className="form-control"
@@ -126,8 +123,8 @@ const OAuth2RegisterPage = () => {
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="gender">Gender</label>
+                    <div className="form-group mb-3">
+                        <label htmlFor="gender">성별</label>
                         <select
                             className="form-control"
                             name="gender"
@@ -135,15 +132,15 @@ const OAuth2RegisterPage = () => {
                             onChange={(e) => setGender(e.target.value)}
                             required
                         >
-                            <option value="">Select Gender</option>
-                            <option value="MALE">Male</option>
-                            <option value="FEMALE">Female</option>
-                            <option value="OTHER">Other</option>
+                            <option value="">성별 선택</option>
+                            <option value="MALE">남성</option>
+                            <option value="FEMALE">여성</option>
+                            <option value="OTHER">기타</option>
                         </select>
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="birthDate">Birth Date</label>
+                    <div className="form-group mb-3">
+                        <label htmlFor="birthDate">생년월일</label>
                         <input
                             type="date"
                             className="form-control"
@@ -154,14 +151,14 @@ const OAuth2RegisterPage = () => {
                         />
                     </div>
 
-                    <div className="form-group">
+                    <div className="d-grid gap-2 mt-4">
                         <button className="btn btn-primary btn-block" disabled={loading || !temporaryToken}>
-                            {loading ? 'Completing...' : 'Complete Registration'}
+                            {loading ? '가입 처리 중...' : '가입 완료'}
                         </button>
                     </div>
 
                     {message && (
-                        <div className="form-group">
+                        <div className="form-group mt-3">
                             <div className="alert alert-danger" role="alert">
                                 {message}
                             </div>

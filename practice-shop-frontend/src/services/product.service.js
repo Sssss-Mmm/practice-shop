@@ -7,6 +7,9 @@ const getProducts = (page = 0, size = 12) => {
     const params = new URLSearchParams({ page, size });
     return axios.get(`${API_URL}?${params.toString()}`, { headers: AuthService.authHeader() });
 };
+const getAllProducts = () => {
+    return axios.get(`${API_URL}`, { headers: AuthService.authHeader() });
+};
 
 const getProductById = (productId) => {
     return axios.get(`${API_URL}/${productId}`, { headers: AuthService.authHeader() });
@@ -42,6 +45,7 @@ const ProductService = {
     registerProduct,
     updateProduct,
     deleteProduct,
+    getAllProducts
 };
 
 export default ProductService;

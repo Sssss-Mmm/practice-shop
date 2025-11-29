@@ -1,0 +1,51 @@
+.ticket-auth-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    background-color: #f8f9fa;
+}
+
+.ticket-auth-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.auth-icon.success {
+    color: #28a745;
+}
+
+.auth-icon.error {
+    color: #dc3545;
+}
+
+.auth-icon.pending {
+    color: #007bff;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.ticket-auth-card h2 {
+    font-weight: 600;
+}
+
+.ticket-auth-card .form-group {
+    text-align: left;
+}
+
+.ticket-auth-card .btn-link {
+    font-size: 0.9rem;
+}

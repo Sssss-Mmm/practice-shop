@@ -1,112 +1,103 @@
 import React, { useState, useEffect } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import EventService from '../services/event.service';
-
-// MUI Imports
-import { 
-    Container, 
-    Typography, 
-    Grid, 
-    Card, 
-    CardMedia, 
-    CardContent, 
-    CardActionArea,
-    Box,
-    Paper
-} from '@mui/material';
+import { Link } from 'react-router-dom';
+import ProductService from '../services/product.service';
+import './HomePage.css';
+import { FaSearch } from 'react-icons/fa';
 
 const HomePage = () => {
-    const [eventsByCategory, setEventsByCategory] = useState({});
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        // Fetch events that are currently on sale
-        EventService.listEvents('SALE').then(
-            (response) => {
-                const events = response.data;
-                // Group events by category
-                const groupedEvents = events.reduce((acc, event) => {
-                    const category = event.category || '기타';
-                    if (!acc[category]) {
-                        acc[category] = [];
-                    }
-                    acc[category].push(event);
-                    return acc;
-                }, {});
-                setEventsByCategory(groupedEvents);
-            },
-            (error) => {
-                console.error("Error fetching events", error);
-            }
-        );
+        setLoading(true);
+        ProductService.getAllProducts()
+            .then((response) => {
+                // 백엔드에서 받은 데이터가 페이지네이션 객체일 경우, content 배열을 사용합니다.
+                // 그렇지 않고 단순 배열일 경우를 대비하여 response.data가 배열인지 확인합니다.
+                const productData = Array.isArray(response.data) ? response.data : response.data.content;
+                setProducts(productData || []);
+                setError(null);
+            })
+            .catch((err) => {
+                const resMessage =
+                    (err.response && err.response.data && err.response.data.message) ||
+                    err.message ||
+                    err.toString();
+                setError(resMessage);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     }, []);
 
     const resolveImageUrl = (relativeUrl) => {
         if (!relativeUrl) {
-            return '/placeholder.png'; // Make sure you have a placeholder image in public folder
+            return '/placeholder.png';
         }
-        if (relativeUrl.startsWith('http')) {
-            return relativeUrl;
+        const encodedPath = encodeURI(relativeUrl);
+        if (encodedPath.startsWith('http://') || encodedPath.startsWith('https://')) {
+            return encodedPath;
         }
-        const apiBase = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8084';
-        return `${apiBase}${encodeURI(relativeUrl)}`;
+        const apiBase = process.env.REACT_APP_API_BASE_URL ?? 'http://localhost:8084';
+        return `${apiBase}${encodedPath}`;
     };
 
-    return (
-        <Container maxWidth="lg">
-            {/* Promotional Banner */}
-            <Paper 
-                elevation={4} 
-                sx={{ 
-                    p: 4, 
-                    mb: 5, 
-                    mt: 2,
-                    textAlign: 'center', 
-                    backgroundColor: 'primary.main', 
-                    color: 'white' 
-                }}
-            >
-                <Typography variant="h3" component="h1" gutterBottom>
-                    놓치고 싶지 않은 순간, 지금 바로 예매하세요
-                </Typography>
-                <Typography variant="h6" component="p">
-                    콘서트, 뮤지컬, 스포츠 등 다양한 즐거움을 한눈에.
-                </Typography>
-            </Paper>
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-            {/* Event Listings */}
-            {Object.keys(eventsByCategory).map(category => (
-                <Box key={category} sx={{ mb: 5 }}>
-                    <Typography variant="h4" component="h2" gutterBottom sx={{ borderBottom: 1, borderColor: 'divider', pb: 1, mb: 3 }}>
-                        {category}
-                    </Typography>
-                    <Grid container spacing={4}>
-                        {eventsByCategory[category].map((event) => (
-                            <Grid item key={event.id} xs={12} sm={6} md={4} lg={3}>
-                                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                    <CardActionArea component={RouterLink} to={`/events/${event.id}`}>
-                                        <CardMedia
-                                            component="img"
-                                            height="300"
-                                            image={resolveImageUrl(event.posterImageUrl)}
-                                            alt={event.title}
-                                            sx={{ objectFit: 'cover' }}
-                                        />
-                                        <CardContent sx={{ flexGrow: 1 }}>
-                                            <Typography gutterBottom variant="h6" component="h3" noWrap>
-                                                {event.title}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                {event.venue.name}
-                                            </Typography>
-                                        </CardContent>
-                                    </CardActionArea>
-                                </Card>
-                            </Grid>
+    return (
+        <div className="homepage-container">
+            <section className="hero-section">
+                <div className="search-container">
+                    <h1>어떤 공연을 찾으시나요?</h1>
+                    <div className="search-bar">
+                        <FaSearch className="search-icon" />
+                        <input
+                            type="text"
+                            placeholder="공연, 아티스트 또는 장소를 검색하세요."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        <button>검색</button>
+                    </div>
+                </div>
+            </section>
+
+            <main className="container my-5">
+                <h2 className="section-title">진행중인 공연</h2>
+
+                {loading && (
+                    <div className="text-center">
+                        <div className="spinner-border text-primary" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                )}
+                {error && <div className="alert alert-danger">{error}</div>}
+
+                {!loading && !error && (
+                    <div className="row">
+                        {filteredProducts.map((product) => (
+                            <div className="col-md-4 col-lg-3 mb-4" key={product.id}>
+                                <Link to={`/products/${product.id}`} className="card-link">
+                                    <div className="card h-100 product-card">
+                                        <img src={resolveImageUrl(product.imageUrls[0])} className="card-img-top" alt={product.name} />
+                                        <div className="card-body">
+                                            <h5 className="card-title">{product.name}</h5>
+                                            <p className="card-text">{product.venueName || '장소 정보 없음'}</p>
+                                            <p className="card-text price">{product.price.toLocaleString()}원</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                            </div>
                         ))}
-                    </Grid>
-                </Box>
-            ))}
-        </Container>
+                    </div>
+                )}
+            </main>
+        </div>
     );
 };
 
