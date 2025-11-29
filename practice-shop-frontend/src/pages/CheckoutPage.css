@@ -1,104 +1,165 @@
 .checkout-container {
-    max-width: 1100px;
-    margin: 2rem auto;
-    padding: 1.5rem;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    max-width: 960px;
+    margin: 40px auto;
+    padding: 2rem;
+    background-color: #f8f9fa;
+}
+
+.checkout-container h1 {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    font-size: 2.5rem;
+    font-weight: 700;
 }
 
 .checkout-content {
     display: flex;
-    gap: 2rem;
-    flex-wrap: wrap;
+    gap: 2.5rem;
+    align-items: flex-start;
 }
 
-.checkout-summary {
-    flex: 1 1 320px;
+.ticket-order-summary {
+    flex: 1 1 50%;
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
 }
 
-.checkout-summary ul {
+.ticket-order-summary h2, .checkout-form h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #333;
+}
+
+.show-info {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.show-info img {
+    width: 100px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.show-info h3 {
+    margin: 0 0 10px;
+    font-size: 1.4rem;
+}
+.show-info p {
+    margin: 4px 0;
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.ticket-order-summary h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #444;
+}
+
+.selected-seats-review {
     list-style: none;
     padding: 0;
-    margin: 1rem 0;
+    margin-bottom: 2rem;
+    max-height: 150px;
+    overflow-y: auto;
 }
 
-.checkout-summary li {
+.selected-seats-review li {
     display: flex;
-    gap: 1rem;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed #e0e0e0;
+}
+
+.final-price {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    padding: 0.6rem 0;
-    border-bottom: 1px solid #eee;
-}
-
-.checkout-summary img {
-    width: 64px;
-    height: 64px;
-    object-fit: cover;
-    border-radius: 6px;
-}
-
-.checkout-total {
+    padding-top: 1.5rem;
+    border-top: 2px solid #333;
     font-size: 1.1rem;
-    font-weight: 600;
+    font-weight: bold;
+}
+
+.final-price strong:last-child {
+    font-size: 1.8rem;
+    color: #ff4081;
 }
 
 .checkout-form {
-    flex: 1 1 360px;
+    flex: 1 1 45%;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
 }
 
 .checkout-form label {
     font-weight: 600;
+    margin-bottom: -5px;
 }
 
 .checkout-form input,
-.checkout-form textarea,
 .checkout-form select {
-    padding: 0.6rem 0.8rem;
+    padding: 12px;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 1rem;
 }
 
-.checkout-form textarea {
-    min-height: 80px;
-}
-
-.checkout-button {
-    padding: 0.7rem 1.4rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    background: #f1f1f1;
-}
-
 .checkout-button.primary {
-    background: #007bff;
-    color: #fff;
+    background: linear-gradient(45deg, #ff4081 30%, #ff8e53 90%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
 }
 
-.checkout-button:disabled {
-    opacity: 0.6;
+.checkout-button.primary:disabled {
+    background: #ccc;
     cursor: not-allowed;
+    box-shadow: none;
+}
+
+.checkout-button.primary:hover:not(:disabled) {
+    box-shadow: 0 4px 15px rgba(255, 107, 139, 0.5);
+    transform: translateY(-2px);
 }
 
 .checkout-error {
-    color: #dc3545;
-    margin-bottom: 1rem;
+    color: #c62828;
+    background-color: #ffebee;
+    padding: 1rem;
+    border-radius: 6px;
+    text-align: center;
 }
 
 .checkout-message {
     margin-top: 0.5rem;
-    color: #28a745;
+    color: #0d47a1;
+    background-color: #e3f2fd;
+    padding: 1rem;
+    border-radius: 6px;
+    text-align: center;
 }
 
-.checkout-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
-    flex-wrap: wrap;
+.error-page {
+    padding: 3rem;
+    text-align: center;
 }

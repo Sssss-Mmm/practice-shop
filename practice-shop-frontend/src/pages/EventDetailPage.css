@@ -1,0 +1,148 @@
+.page-container {
+    padding: 40px 20px;
+    background-color: #f4f4f9;
+    min-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.booking-detail-card {
+    width: 100%;
+    max-width: 900px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    padding: 30px 40px;
+}
+
+.booking-detail-header {
+    display: flex;
+    gap: 30px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 30px;
+    margin-bottom: 30px;
+}
+
+.booking-image-wrapper {
+    flex-shrink: 0;
+}
+
+.booking-event-image {
+    width: 200px;
+    height: 280px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.booking-info-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.booking-event-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin: 0 0 15px;
+}
+
+.booking-event-meta {
+    margin: 4px 0;
+    font-size: 1rem;
+    color: #555;
+}
+
+.booking-event-meta strong {
+    font-weight: 600;
+    color: #111;
+}
+
+.showtime-selection-section {
+    margin-bottom: 30px;
+}
+
+.showtime-selection-section h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.showtime-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.showtime-btn {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.showtime-btn:hover {
+    background-color: #f0f0f0;
+    border-color: #adadad;
+}
+
+.showtime-btn.selected {
+    background-color: #ff4081;
+    color: #fff;
+    border-color: #ff4081;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(255, 64, 129, 0.4);
+}
+
+.no-showtimes-msg {
+    color: #888;
+    font-style: italic;
+}
+
+.booking-actions {
+    text-align: right;
+    margin-top: 40px;
+}
+
+.next-step-btn {
+    background: linear-gradient(45deg, #ff4081 30%, #ff8e53 90%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 40px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 107, 139, 0.4);
+}
+
+.next-step-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 139, 0.5);
+}
+
+.next-step-btn:disabled {
+    background: #ccc;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.loading-box, .error-box {
+    padding: 40px;
+    text-align: center;
+    font-size: 1.2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.error-box {
+    color: #c62828;
+    background-color: #ffebee;
+}

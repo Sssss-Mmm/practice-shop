@@ -2,15 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ProductService from '../services/product.service';
 import AuthService from '../services/auth.service';
-import CartService from '../services/cart.service';
 import './ProductDetailPage.css';
 
 const ProductDetailPage = () => {
     const { productId } = useParams();
     const navigate = useNavigate();
-    const [product, setProduct] = useState(null);
+    const [event, setEvent] = useState(null);
     const [error, setError] = useState(null);
-    const [quantity, setQuantity] = useState(1);
     const [isSellerOrAdmin, setIsSellerOrAdmin] = useState(false);
     const [message, setMessage] = useState('');
     const [actionPending, setActionPending] = useState(false);
@@ -19,7 +17,7 @@ const ProductDetailPage = () => {
         const user = AuthService.getCurrentUser();
         ProductService.getProductById(productId).then(
             (response) => {
-                setProduct(response.data);
+                setEvent(response.data);
                 if (
                     user &&
                     (user.email === response.data.sellerEmail ||
@@ -59,95 +57,72 @@ const ProductDetailPage = () => {
             setActionPending(false);
         }
     };
-
-    const handleAddToCart = () => {
-        if (!product) {
-            return;
-        }
-        const sanitizedQty = Math.max(1, Number(quantity) || 1);
-        setQuantity(sanitizedQty);
-        setActionPending(true);
-        setMessage('');
-        CartService.addItem(product.id, sanitizedQty)
-            .then(() => {
-                setMessage('장바구니에 담았습니다.');
-            })
-            .catch((err) => {
-                const status = err.response?.status;
-                const resMessage =
-                    status === 401
-                        ? '로그인이 필요합니다.'
-                        : (err.response && err.response.data && err.response.data.message) ||
-                          err.message ||
-                          err.toString();
-                setMessage(resMessage);
-            })
-            .finally(() => setActionPending(false));
+    
+    const handleBooking = () => {
+        navigate(`/events/${productId}`);
     };
+
     if (error) {
         return <div className="error-message">Error: {error}</div>;
     }
 
-    if (!product) {
-        return <div>Loading...</div>;
+    if (!event) {
+        return <div className="loading-container"><div>Loading...</div></div>;
     }
 
     const resolveImageUrl = (relativeUrl) => {
         if (!relativeUrl) {
-            return '/placeholder.png';
+            return '/placeholder.png'; // A default placeholder image
         }
 
         const encodedPath = encodeURI(relativeUrl);
         if (encodedPath.startsWith('http://') || encodedPath.startsWith('https://')) {
             return encodedPath;
         }
-
+        
         const apiBase = process.env.REACT_APP_API_BASE_URL ?? 'http://localhost:8084';
         return `${apiBase}${encodedPath}`;
     };
 
     return (
-        <div className="product-detail-container">
-            <div className="product-image-section">
-                <img
-                    src={resolveImageUrl(product.imageUrl)}
-                    alt={product.productName}
-                    className="product-detail-image"
-                />
-            </div>
-            <div className="product-info-section">
-                <h1 className="product-detail-name">{product.productName}</h1>
-                <p className="product-detail-description">{product.description}</p>
-                <p className="product-detail-price">{product.price}원</p>
-                <div className="product-quantity">
-                    <label htmlFor="quantity">수량</label>
-                    <input
-                        id="quantity"
-                        type="number"
-                        min="1"
-                        value={quantity}
-                        onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
-                        disabled={actionPending}
+        <div className="event-detail-page">
+            <div className="event-main-container">
+                <div className="event-image-wrapper">
+                    <img
+                        src={resolveImageUrl(event.imageUrl)}
+                        alt={event.productName}
+                        className="event-detail-image"
                     />
                 </div>
-                <button className="add-to-cart-button" onClick={handleAddToCart} disabled={actionPending}>
-                    장바구니에 담기
-                </button>
-                {isSellerOrAdmin && (
-                    <div className="product-admin-actions">
-                        <button className="edit-product-button" onClick={handleEdit} disabled={actionPending}>
-                            Edit Product
-                        </button>
-                        <button className="delete-product-button" onClick={handleDelete} disabled={actionPending}>
-                            Delete Product
-                        </button>
+                <div className="event-info-wrapper">
+                    <h1 className="event-detail-title">{event.productName}</h1>
+                    <div className="event-detail-meta">
+                        <p><strong>장소:</strong> {event.venue || '미정'}</p>
+                        <p><strong>기간:</strong> {event.startDate || '미정'} ~ {event.endDate || '미정'}</p>
+                        <p className="event-detail-price">
+                            <strong>가격:</strong> <span>{event.price.toLocaleString()}원</span>
+                        </p>
                     </div>
-                )}
-                {message && (
-                    <div className="product-message">
-                        {message}
-                    </div>
-                )}
+                    <button className="booking-button" onClick={handleBooking} disabled={actionPending}>
+                        예매하기
+                    </button>
+                    {isSellerOrAdmin && (
+                        <div className="admin-actions">
+                            <button className="edit-button" onClick={handleEdit} disabled={actionPending}>
+                                수정
+                            </button>
+                            <button className="delete-button" onClick={handleDelete} disabled={actionPending}>
+                                삭제
+                            </button>
+                        </div>
+                    )}
+                    {message && <div className="action-message">{message}</div>}
+                </div>
+            </div>
+
+            <div className="event-description-container">
+                <h2>공연 상세 정보</h2>
+                <p className="event-detail-description">{event.description}</p>
             </div>
         </div>
     );

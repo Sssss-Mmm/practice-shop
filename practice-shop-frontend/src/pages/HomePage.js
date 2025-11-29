@@ -1,102 +1,112 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import ProductService from '../services/product.service';
-import './HomePage.css';
+import { Link as RouterLink } from 'react-router-dom';
+import EventService from '../services/event.service';
+
+// MUI Imports
+import { 
+    Container, 
+    Typography, 
+    Grid, 
+    Card, 
+    CardMedia, 
+    CardContent, 
+    CardActionArea,
+    Box,
+    Paper
+} from '@mui/material';
 
 const HomePage = () => {
-    const [products, setProducts] = useState([]);
-    const [page, setPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
-    const pageSize = 12;
+    const [eventsByCategory, setEventsByCategory] = useState({});
 
     useEffect(() => {
-        loadProducts(0);
-    }, []);
-
-    const loadProducts = (targetPage) => {
-        ProductService.getProducts(targetPage, pageSize).then(
+        // Fetch events that are currently on sale
+        EventService.listEvents('SALE').then(
             (response) => {
-                const data = response.data;
-                if (Array.isArray(data)) {
-                    setProducts(data);
-                    setPage(0);
-                    setTotalPages(1);
-                } else {
-                    setProducts(data.content ?? []);
-                    setPage(data.page ?? targetPage);
-                    const total = data.totalPages ?? 1;
-                    setTotalPages(total > 0 ? total : 1);
-                }
+                const events = response.data;
+                // Group events by category
+                const groupedEvents = events.reduce((acc, event) => {
+                    const category = event.category || '기타';
+                    if (!acc[category]) {
+                        acc[category] = [];
+                    }
+                    acc[category].push(event);
+                    return acc;
+                }, {});
+                setEventsByCategory(groupedEvents);
             },
             (error) => {
-                console.log(error);
+                console.error("Error fetching events", error);
             }
         );
-    };
-
-    const handlePageChange = (nextPage) => {
-        if (nextPage < 0 || nextPage >= totalPages) {
-            return;
-        }
-        loadProducts(nextPage);
-    };
+    }, []);
 
     const resolveImageUrl = (relativeUrl) => {
         if (!relativeUrl) {
-            return '/placeholder.png';
+            return '/placeholder.png'; // Make sure you have a placeholder image in public folder
         }
-
-        const encodedPath = encodeURI(relativeUrl);
-        if (encodedPath.startsWith('http://') || encodedPath.startsWith('https://')) {
-            return encodedPath;
+        if (relativeUrl.startsWith('http')) {
+            return relativeUrl;
         }
-
-        const apiBase = process.env.REACT_APP_API_BASE_URL ?? 'http://localhost:8084';
-        return `${apiBase}${encodedPath}`;
+        const apiBase = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8084';
+        return `${apiBase}${encodeURI(relativeUrl)}`;
     };
 
     return (
-        <div className="homepage-container">
-            <div className="promotional-banner">
-                <h1>Welcome to Safian Shop</h1>
-                <p>The best products for you and your family.</p>
-            </div>
+        <Container maxWidth="lg">
+            {/* Promotional Banner */}
+            <Paper 
+                elevation={4} 
+                sx={{ 
+                    p: 4, 
+                    mb: 5, 
+                    mt: 2,
+                    textAlign: 'center', 
+                    backgroundColor: 'primary.main', 
+                    color: 'white' 
+                }}
+            >
+                <Typography variant="h3" component="h1" gutterBottom>
+                    놓치고 싶지 않은 순간, 지금 바로 예매하세요
+                </Typography>
+                <Typography variant="h6" component="p">
+                    콘서트, 뮤지컬, 스포츠 등 다양한 즐거움을 한눈에.
+                </Typography>
+            </Paper>
 
-            <div className="product-grid">
-                {products.map((product) => (
-                    <Link to={`/products/${product.id}`} key={product.id} className="product-card-link">
-                        <div className="product-card">
-                            <img
-                                src={resolveImageUrl(product.imageUrl)}
-                                alt={product.productName}
-                                className="product-image"
-                            />
-                            <div className="product-info">
-                                <h5 className="product-name">{product.productName}</h5>
-                                <p className="product-price">{product.price}원</p>
-                            </div>
-                        </div>
-                    </Link>
-                ))}
-            </div>
-            {totalPages > 1 && (
-                <div className="pagination-controls">
-                    <button
-                        disabled={page === 0}
-                        onClick={() => handlePageChange(page - 1)}
-                    >
-                        이전
-                    </button>
-                    <span>{page + 1} / {totalPages}</span>
-                    <button
-                        disabled={page >= totalPages - 1}
-                        onClick={() => handlePageChange(page + 1)}
-                    >
-                        다음
-                    </button>
-                </div>
-            )}
-        </div>
+            {/* Event Listings */}
+            {Object.keys(eventsByCategory).map(category => (
+                <Box key={category} sx={{ mb: 5 }}>
+                    <Typography variant="h4" component="h2" gutterBottom sx={{ borderBottom: 1, borderColor: 'divider', pb: 1, mb: 3 }}>
+                        {category}
+                    </Typography>
+                    <Grid container spacing={4}>
+                        {eventsByCategory[category].map((event) => (
+                            <Grid item key={event.id} xs={12} sm={6} md={4} lg={3}>
+                                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                    <CardActionArea component={RouterLink} to={`/events/${event.id}`}>
+                                        <CardMedia
+                                            component="img"
+                                            height="300"
+                                            image={resolveImageUrl(event.posterImageUrl)}
+                                            alt={event.title}
+                                            sx={{ objectFit: 'cover' }}
+                                        />
+                                        <CardContent sx={{ flexGrow: 1 }}>
+                                            <Typography gutterBottom variant="h6" component="h3" noWrap>
+                                                {event.title}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {event.venue.name}
+                                            </Typography>
+                                        </CardContent>
+                                    </CardActionArea>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
+                </Box>
+            ))}
+        </Container>
     );
 };
 
