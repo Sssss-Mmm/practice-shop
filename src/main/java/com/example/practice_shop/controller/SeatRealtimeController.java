@@ -19,6 +19,11 @@ public class SeatRealtimeController {
     private final SeatInventoryRepository seatInventoryRepository;
     private final SeatRealtimeService seatRealtimeService;
 
+    /**
+     * 좌석 상태 브로드캐스트
+     * @param showtimeId
+     * @return
+     */
     @PostMapping("/broadcast")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "좌석 상태 브로드캐스트", description = "해당 회차의 좌석 상태를 WebSocket으로 전송합니다.")
