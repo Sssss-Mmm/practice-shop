@@ -27,6 +27,11 @@ import SeatSelectionPage from './pages/SeatSelectionPage';
 import ShowtimeAdminPage from './pages/ShowtimeAdminPage';
 import SeatAdminPage from './pages/SeatAdminPage';
 
+/**
+ * 애플리케이션의 최상위 컴포넌트입니다.
+ * 전체 레이아웃과 페이지 라우팅을 설정합니다.
+ * @returns {JSX.Element} App 컴포넌트
+ */
 function App() {
   return (
     <Layout>

@@ -5,6 +5,10 @@ import CartService from '../services/cart.service';
 import './ProductDetailPage.css';
 import { FaCalendarAlt, FaMapMarkerAlt, FaClock, FaWonSign, FaInfoCircle } from 'react-icons/fa';
 
+/**
+ * 개별 공연(상품)의 상세 정보를 보여주는 페이지 컴포넌트입니다.
+ * @returns {JSX.Element} ProductDetailPage 컴포넌트
+ */
 const ProductDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -13,6 +17,11 @@ const ProductDetailPage = () => {
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('info');
 
+    /**
+     * 컴포넌트가 마운트되거나 'id'가 변경될 때, 해당 ID의 공연 상세 정보를 서버에서 가져옵니다.
+     * 성공 시 product 상태를 업데이트하고, 실패 시 에러 상태를 설정합니다.
+     * @listens id
+     */
     useEffect(() => {
         setLoading(true);
         ProductService.getProductById(id)
@@ -32,6 +41,10 @@ const ProductDetailPage = () => {
             });
     }, [id]);
 
+    /**
+     * '예매하기' 버튼 클릭 시 호출됩니다.
+     * 현재 공연을 장바구니에 추가하고, 성공 시 장바구니 페이지로 이동합니다.
+     */
     const handleAddToCart = () => {
         CartService.addToCart(product.id, 1)
             .then(() => {
@@ -42,6 +55,12 @@ const ProductDetailPage = () => {
             });
     };
 
+    /**
+     * 상대적인 이미지 URL을 절대 URL로 변환합니다.
+     * 환경 변수에 설정된 API 기본 URL을 사용하며, URL이 없는 경우 플레이스홀더 이미지를 반환합니다.
+     * @param {string} relativeUrl - 변환할 상대 이미지 URL
+     * @returns {string} 절대 이미지 URL
+     */
     const resolveImageUrl = (relativeUrl) => {
         if (!relativeUrl) return '/placeholder.png';
         const encodedPath = encodeURI(relativeUrl);

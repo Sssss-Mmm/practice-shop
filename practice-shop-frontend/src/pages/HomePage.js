@@ -4,12 +4,21 @@ import ProductService from '../services/product.service';
 import './HomePage.css';
 import { FaSearch } from 'react-icons/fa';
 
+/**
+ * 메인 홈페이지 컴포넌트입니다.
+ * 공연 검색 기능과 현재 진행중인 공연 목록을 보여줍니다.
+ * @returns {JSX.Element} HomePage 컴포넌트
+ */
 const HomePage = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
+    /**
+     * 컴포넌트가 마운트될 때 모든 공연(상품) 목록을 서버에서 가져옵니다.
+     * 성공 시 products 상태를 업데이트하고, 실패 시 에러 상태를 설정합니다.
+     */
     useEffect(() => {
         setLoading(true);
         ProductService.getAllProducts()
@@ -32,6 +41,12 @@ const HomePage = () => {
             });
     }, []);
 
+    /**
+     * 상대적인 이미지 URL을 절대 URL로 변환합니다.
+     * 환경 변수에 설정된 API 기본 URL을 사용하며, URL이 없는 경우 플레이스홀더 이미지를 반환합니다.
+     * @param {string} relativeUrl - 변환할 상대 이미지 URL
+     * @returns {string} 절대 이미지 URL
+     */
     const resolveImageUrl = (relativeUrl) => {
         if (!relativeUrl) {
             return '/placeholder.png';
@@ -44,6 +59,9 @@ const HomePage = () => {
         return `${apiBase}${encodedPath}`;
     };
 
+    /**
+     * 'products' 배열에서 'searchTerm'을 기준으로 공연 이름을 필터링합니다.
+     */
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );

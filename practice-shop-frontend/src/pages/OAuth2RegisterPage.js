@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import AuthService from '../services/auth.service';
 import './AuthPages.css';
 
+/**
+ * OAuth2 소셜 로그인 후 추가 정보를 입력받는 페이지 컴포넌트입니다.
+ * @returns {JSX.Element} OAuth2RegisterPage 컴포넌트
+ */
 const OAuth2RegisterPage = () => {
     const [temporaryToken, setTemporaryToken] = useState('');
     const [name, setName] = useState('');
@@ -16,6 +20,10 @@ const OAuth2RegisterPage = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
+    /**
+     * 컴포넌트가 마운트될 때 URL의 해시(#)에서 임시 토큰을 추출하여 상태에 저장합니다.
+     * 토큰이 없으면 에러 메시지를 설정합니다.
+     */
     useEffect(() => {
         const fragment = window.location.hash.substring(1);
         const params = new URLSearchParams(fragment);
@@ -28,6 +36,11 @@ const OAuth2RegisterPage = () => {
         }
     }, []);
 
+    /**
+     * '가입 완료' 버튼 클릭 시 호출되는 폼 제출 핸들러입니다.
+     * 사용자가 입력한 추가 정보를 임시 토큰과 함께 서버로 전송하여 회원가입을 완료합니다.
+     * @param {React.FormEvent<HTMLFormElement>} e - 폼 이벤트 객체
+     */
     const handleCompleteRegistration = async (e) => {
         e.preventDefault();
         setMessage('');
