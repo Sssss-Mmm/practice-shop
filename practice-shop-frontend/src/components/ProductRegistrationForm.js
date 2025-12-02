@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ProductService from "../services/product.service";
+import "./ProductRegistrationForm.css";
 
 const ProductRegistrationForm = () => {
     const [productName, setProductName] = useState("");
@@ -47,34 +48,38 @@ const ProductRegistrationForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div>
+        <form className="product-form" onSubmit={handleSubmit}>
+            <div className="form-row">
                 <label htmlFor="productName">상품명</label>
                 <input
                     type="text"
                     id="productName"
                     value={productName}
                     onChange={(e) => setProductName(e.target.value)}
+                    required
                 />
             </div>
-            <div>
+            <div className="form-row">
                 <label htmlFor="price">가격</label>
                 <input
                     type="number"
                     id="price"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
+                    min="0"
+                    required
                 />
             </div>
-            <div>
+            <div className="form-row">
                 <label htmlFor="description">설명</label>
                 <textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    rows="4"
                 ></textarea>
             </div>
-            <div>
+            <div className="form-row">
                 <label htmlFor="status">상태</label>
                 <select
                     id="status"
@@ -86,7 +91,7 @@ const ProductRegistrationForm = () => {
                     <option value="DISCONTINUED">단종</option>
                 </select>
             </div>
-            <div>
+            <div className="form-row">
                 <label htmlFor="imageFile">이미지</label>
                 <input
                     type="file"
@@ -94,7 +99,7 @@ const ProductRegistrationForm = () => {
                     onChange={(e) => setImageFile(e.target.files[0])}
                 />
             </div>
-            <button type="submit">등록</button>
+            <button className="submit-btn" type="submit">등록</button>
 
             {message && (
                 <div className="form-group">

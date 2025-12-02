@@ -1,103 +1,63 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AuthService from '../services/auth.service';
+import './AuthPages.css';
 
 const ProfilePage = () => {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
-        AuthService.getUserProfile().then(
-            response => {
+        AuthService.getUserProfile()
+            .then(response => {
                 setProfile(response.data);
                 setLoading(false);
-            },
-            error => {
-                const _content = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
-                setProfile(null);
+            })
+            .catch(err => {
+                const resMessage =
+                    (err.response && err.response.data && err.response.data.message) ||
+                    err.message ||
+                    err.toString();
+                setError(resMessage);
                 setLoading(false);
-                setMessage(_content);
-            }
-        );
-    }, []);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setProfile({ ...profile, [name]: value });
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        AuthService.updateUserProfile(profile).then(
-            response => {
-                setMessage('Profile updated successfully!');
-            },
-            error => {
-                const _content = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
-                setMessage(_content);
-            }
-        );
-    };
+                if (err.response && err.response.status === 401) {
+                    navigate('/login');
+                }
+            });
+    }, [navigate]);
 
     if (loading) {
-        return <div>Loading...</div>;
+        return <div className="container my-5 text-center">프로필 정보를 불러오는 중입니다...</div>;
+    }
+
+    if (error) {
+        return <div className="container my-5 alert alert-danger">{error}</div>;
     }
 
     if (!profile) {
-        return <div>{message}</div>;
+        return <div className="container my-5 alert alert-warning">프로필 정보를 찾을 수 없습니다.</div>;
     }
 
     return (
-        <div className="container">
-            <header className="jumbotron">
-                <h3>
-                    <strong>{profile.name}</strong> Profile
-                </h3>
-            </header>
-            <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                    <label htmlFor="email">Email</label>
-                    <input type="text" className="form-control" id="email" value={profile.email} disabled />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="name">Name</label>
-                    <input type="text" className="form-control" id="name" value={profile.name} disabled />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="nickname">Nickname</label>
-                    <input type="text" className="form-control" id="nickname" name="nickname" value={profile.nickname} onChange={handleChange} />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="phoneNumber">Phone Number</label>
-                    <input type="text" className="form-control" id="phoneNumber" name="phoneNumber" value={profile.phoneNumber} onChange={handleChange} />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="region">Region</label>
-                    <input type="text" className="form-control" id="region" name="region" value={profile.region} onChange={handleChange} />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="address">Address</label>
-                    <input type="text" className="form-control" id="address" name="address" value={profile.address} onChange={handleChange} />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="gender">Gender</label>
-                    <input type="text" className="form-control" id="gender" name="gender" value={profile.gender} onChange={handleChange} />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="birthDate">Birth Date</label>
-                    <input type="text" className="form-control" id="birthDate" name="birthDate" value={profile.birthDate} onChange={handleChange} />
-                </div>
-                <div className="form-group">
-                    <button type="submit" className="btn btn-primary btn-block">Update Profile</button>
-                </div>
-                {message && (
-                    <div className="form-group">
-                        <div className="alert alert-info" role="alert">
-                            {message}
-                        </div>
+        <div className="ticket-auth-container">
+            <div className="ticket-auth-card" style={{ maxWidth: '600px' }}>
+                <h2 className="text-center mb-4">마이페이지</h2>
+                <div className="card">
+                    <div className="card-body">
+                        <p><strong>이메일:</strong> {profile.email}</p>
+                        <p><strong>이름:</strong> {profile.name}</p>
+                        <p><strong>닉네임:</strong> {profile.nickname}</p>
+                        <p><strong>전화번호:</strong> {profile.phoneNumber}</p>
+                        <p><strong>지역:</strong> {profile.region}</p>
+                        <p><strong>상세주소:</strong> {profile.address}</p>
+                        <p><strong>성별:</strong> {profile.gender === 'MALE' ? '남성' : '여성'}</p>
+                        <p><strong>생년월일:</strong> {profile.birthDate}</p>
+                        <p><strong>가입일:</strong> {new Date(profile.createdAt).toLocaleDateString()}</p>
                     </div>
-                )}
-            </form>
+                </div>
+            </div>
         </div>
     );
 };

@@ -1,130 +1,77 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import AuthService from '../services/auth.service';
-import CartService from '../services/cart.service';
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
+import './Header.css';
 
 const Header = () => {
-    const [currentUser, setCurrentUser] = useState(() => AuthService.getCurrentUser());
-    const [showAdminBoard, setShowAdminBoard] = useState(() =>
-        !!AuthService.getCurrentUser()?.roles?.includes('ADMIN')
-    );
-    const [cartCount, setCartCount] = useState(0);
+    const { currentUser, logout } = useAuth();
+    const { cart } = useCart();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const applyAuthState = () => {
-            const user = AuthService.getCurrentUser();
-            setCurrentUser(user);
-            setShowAdminBoard(!!user?.roles?.includes('ADMIN'));
-        };
+    const isAdmin = (currentUser?.roles || []).some((role) =>
+        String(role).toUpperCase() === 'ADMIN' || String(role).toUpperCase() === 'ROLE_ADMIN'
+    );
+    const cartItemCount = cart?.totalItems ?? 0;
 
-        const updateCartCountFromResponse = (data) => {
-            if (data && typeof data.totalItems === 'number') {
-                setCartCount(data.totalItems);
-            } else if (data && Array.isArray(data.items)) {
-                setCartCount(data.items.reduce((sum, item) => sum + (item.quantity ?? 0), 0));
-            } else {
-                setCartCount(0);
-            }
-        };
-
-        const fetchInitialCart = () => {
-            const user = AuthService.getCurrentUser();
-            if (!user) {
-                setCartCount(0);
-                return;
-            }
-            CartService.getCart().then((response) => {
-                updateCartCountFromResponse(response.data);
-            }).catch(() => setCartCount(0));
-        };
-
-        applyAuthState();
-        fetchInitialCart();
-
-        const unsubscribeAuth = AuthService.onAuthChange(() => {
-            applyAuthState();
-            fetchInitialCart();
-        });
-
-        const unsubscribeCart = CartService.onChange((payload) => {
-            if (payload) {
-                updateCartCountFromResponse(payload);
-            } else {
-                fetchInitialCart();
-            }
-        });
-
-        return () => {
-            if (unsubscribeAuth) {
-                unsubscribeAuth();
-            }
-            if (unsubscribeCart) {
-                unsubscribeCart();
-            }
-        };
-    }, []);
-
-    const logOut = async (event) => {
-        event.preventDefault();
-        await AuthService.logout();
-        setCartCount(0);
+    const handleLogout = () => {
+        logout();
         navigate('/login', { replace: true });
     };
 
     return (
-        <header>
+        <header className="app-header">
             <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div className="container">
-                    <Link className="navbar-brand" to="/">Practice Shop</Link>
-                    <div className="collapse navbar-collapse">
-                        <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/">Home</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/cart">
-                                    Cart{cartCount > 0 ? ` (${cartCount})` : ''}
-                                </Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/orders">
-                                    Orders
-                                </Link>
-                            </li>
-                            {showAdminBoard && (
-                                <li className="nav-item dropdown">
-                                    <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Admin
-                                    </a>
-                                    <ul className="dropdown-menu dropdown-menu-end">
-                                        <li><Link className="dropdown-item" to="/product-registration">상품 등록</Link></li>
-                                        <li><Link className="dropdown-item" to="/admin/venues">공연장 관리</Link></li>
-                                        <li><Link className="dropdown-item" to="/admin/events">공연 관리</Link></li>
-                                        <li><Link className="dropdown-item" to="/admin/showtimes">회차 관리</Link></li>
-                                        <li><Link className="dropdown-item" to="/admin/seats">좌석 관리</Link></li>
-                                    </ul>
-                                </li>
-                            )}
-
+                    <Link to="/" className="navbar-brand ticket-brand">TICKET ZONE</Link>
+                    <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span className="navbar-toggler-icon"></span>
+                    </button>
+                    <div className="collapse navbar-collapse" id="navbarNav">
+                        <ul className="navbar-nav me-auto mb-2 mb-lg-0"></ul>
+                        <ul className="navbar-nav align-items-center">
                             {currentUser ? (
                                 <>
                                     <li className="nav-item">
-                                        <Link className="nav-link" to="/profile">{currentUser.username}</Link>
+                                        <Link className="nav-link" to="/cart">
+                                            장바구니 {cartItemCount > 0 && <span className="badge bg-danger ms-1">{cartItemCount}</span>}
+                                        </Link>
                                     </li>
                                     <li className="nav-item">
-                                        <a href="/login" className="nav-link" onClick={logOut}>
-                                            Logout
+                                        <Link className="nav-link" to="/orders">주문내역</Link>
+                                    </li>
+                                    {isAdmin && (
+                                        <li className="nav-item dropdown">
+                                            <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Admin
+                                            </a>
+                                            <ul className="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                                                <li><Link className="dropdown-item" to="/product-registration">공연 등록</Link></li>
+                                                <li><Link className="dropdown-item" to="/admin/events">공연 관리</Link></li>
+                                                <li><Link className="dropdown-item" to="/admin/venues">공연장 관리</Link></li>
+                                                <li><Link className="dropdown-item" to="/admin/showtimes">회차 관리</Link></li>
+                                                <li><Link className="dropdown-item" to="/admin/seats">좌석 관리</Link></li>
+                                            </ul>
+                                        </li>
+                                    )}
+                                    <li className="nav-item dropdown">
+                                        <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            {currentUser.username}
                                         </a>
+                                        <ul className="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                                            <li><Link className="dropdown-item" to="/profile">마이페이지</Link></li>
+                                            <li><hr className="dropdown-divider" /></li>
+                                            <li><button onClick={handleLogout} className="dropdown-item">로그아웃</button></li>
+                                        </ul>
                                     </li>
                                 </>
                             ) : (
                                 <>
                                     <li className="nav-item">
-                                        <Link className="nav-link" to="/login">Login</Link>
+                                        <Link to="/login" className="nav-link">로그인</Link>
                                     </li>
-                                    <li className="nav-item">
-                                        <Link className="nav-link" to="/signup">Signup</Link>
+                                    <li className="nav-item ms-2">
+                                        <Link to="/signup" className="btn btn-primary btn-sm">회원가입</Link>
                                     </li>
                                 </>
                             )}

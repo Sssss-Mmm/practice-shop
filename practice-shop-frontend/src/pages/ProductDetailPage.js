@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ProductService from '../services/product.service';
 import CartService from '../services/cart.service';
+import AuthService from '../services/auth.service';
 import './ProductDetailPage.css';
 import { FaCalendarAlt, FaMapMarkerAlt, FaClock, FaWonSign, FaInfoCircle } from 'react-icons/fa';
 
@@ -45,14 +46,31 @@ const ProductDetailPage = () => {
      * '예매하기' 버튼 클릭 시 호출됩니다.
      * 현재 공연을 장바구니에 추가하고, 성공 시 장바구니 페이지로 이동합니다.
      */
-    const handleAddToCart = () => {
-        CartService.addToCart(product.id, 1)
-            .then(() => {
-                navigate('/cart');
-            })
-            .catch((err) => {
-                setError(err.response?.data?.message || '장바구니에 추가하는 중 오류가 발생했습니다.');
+    const handleAddToCart = async () => {
+        setError(null);
+        const user = AuthService.getCurrentUser();
+        if (!user) {
+            navigate('/login', {
+                state: { message: '로그인 후 이용해 주세요.', variant: 'warning' },
+                replace: true,
             });
+            return;
+        }
+
+        try {
+            await CartService.addItem(product.id, 1);
+            navigate('/cart');
+        } catch (err) {
+            const status = err.response?.status;
+            if (status === 401) {
+                navigate('/login', {
+                    state: { message: '세션이 만료되었습니다. 다시 로그인해주세요.', variant: 'warning' },
+                    replace: true,
+                });
+                return;
+            }
+            setError(err.response?.data?.message || '장바구니에 추가하는 중 오류가 발생했습니다.');
+        }
     };
 
     /**

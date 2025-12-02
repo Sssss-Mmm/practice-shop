@@ -1,10 +1,11 @@
 .page-container {
     padding: 40px 20px;
-    background-color: #f4f4f9;
+    background-color: #f8f9fa;
     min-height: 80vh;
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    color: var(--brand-primary);
 }
 
 .booking-detail-card {
@@ -19,7 +20,7 @@
 .booking-detail-header {
     display: flex;
     gap: 30px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border);
     padding-bottom: 30px;
     margin-bottom: 30px;
 }
@@ -50,12 +51,12 @@
 .booking-event-meta {
     margin: 4px 0;
     font-size: 1rem;
-    color: #555;
+    color: var(--muted);
 }
 
 .booking-event-meta strong {
     font-weight: 600;
-    color: #111;
+    color: var(--brand-primary);
 }
 
 .showtime-selection-section {
@@ -66,7 +67,7 @@
     font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 20px;
-    color: #333;
+    color: var(--brand-primary);
 }
 
 .showtime-list {
@@ -77,7 +78,7 @@
 
 .showtime-btn {
     background-color: #fff;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 20px;
     padding: 10px 20px;
     font-size: 0.95rem;
@@ -86,16 +87,16 @@
 }
 
 .showtime-btn:hover {
-    background-color: #f0f0f0;
-    border-color: #adadad;
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
 }
 
 .showtime-btn.selected {
-    background-color: #ff4081;
+    background-color: var(--brand-accent);
     color: #fff;
-    border-color: #ff4081;
+    border-color: var(--brand-accent);
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(255, 64, 129, 0.4);
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.4);
 }
 
 .no-showtimes-msg {
@@ -109,7 +110,7 @@
 }
 
 .next-step-btn {
-    background: linear-gradient(45deg, #ff4081 30%, #ff8e53 90%);
+    background: linear-gradient(45deg, var(--brand-accent) 30%, #fb923c 90%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -118,12 +119,12 @@
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(255, 107, 139, 0.4);
+    box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
 }
 
 .next-step-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 107, 139, 0.5);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5);
 }
 
 .next-step-btn:disabled {

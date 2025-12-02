@@ -4,6 +4,7 @@
     padding: 40px;
     background-color: #f8f9fa;
     align-items: flex-start;
+    color: var(--brand-primary);
 }
 
 .seat-map-wrapper {
@@ -91,11 +92,11 @@
 }
 
 .seat.selected {
-    background: #ff4081;
+    background: var(--brand-accent);
     color: #fff;
-    border: 1px solid #ff4081;
+    border: 1px solid var(--brand-accent);
     transform: scale(1.1);
-    box-shadow: 0 0 10px rgba(255, 64, 129, 0.5);
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.45);
 }
 
 .seat-legend {
@@ -161,7 +162,7 @@
 }
 
 .total-price-section {
-    border-top: 2px solid #333;
+    border-top: 2px solid var(--brand-accent);
     padding-top: 20px;
     margin-top: 20px;
 }
@@ -176,13 +177,13 @@
 .total-price {
     font-size: 2rem;
     font-weight: bold;
-    color: #ff4081;
+    color: var(--brand-accent);
     text-align: right;
 }
 
 .confirm-booking-btn {
     width: 100%;
-    background: linear-gradient(45deg, #ff4081 30%, #ff8e53 90%);
+    background: linear-gradient(45deg, var(--brand-accent) 30%, #fb923c 90%);
     color: white;
     border: none;
     border-radius: 8px;

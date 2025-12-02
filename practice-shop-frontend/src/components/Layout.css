@@ -1,0 +1,27 @@
+.app-footer {
+  padding: 24px 16px;
+  margin-top: auto;
+  background-color: #f3f4f6;
+  color: var(--brand-primary);
+}
+
+.footer-title {
+  text-align: center;
+  margin: 0;
+  font-weight: 600;
+}
+
+.footer-copy {
+  text-align: center;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.footer-link {
+  color: inherit;
+}
+
+.footer-link:hover {
+  color: var(--brand-accent);
+}

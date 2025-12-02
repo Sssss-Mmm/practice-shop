@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import AuthService from '../services/auth.service';
+import { useAuth } from '../context/AuthContext';
 import './AuthPages.css';
 import { FaGoogle } from 'react-icons/fa';
 
 const LoginPage = () => {
+    const { login } = useAuth();
     const [username, setUsername] = useState(''); // 'email'을 'username'으로 변경
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -28,7 +29,7 @@ const LoginPage = () => {
         setLoading(true);
 
         try {
-            await AuthService.login(username, password);
+            await login(username, password); // Context의 login 함수 사용
             navigate('/');
         } catch (error) {
             const resMessage =

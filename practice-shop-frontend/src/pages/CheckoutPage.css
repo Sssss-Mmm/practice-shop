@@ -3,6 +3,7 @@
     margin: 40px auto;
     padding: 2rem;
     background-color: #f8f9fa;
+    color: var(--brand-primary);
 }
 
 .checkout-container h1 {
@@ -31,7 +32,7 @@
     font-weight: 600;
     margin-bottom: 1.5rem;
     padding-bottom: 0.5rem;
-    border-bottom: 2px solid #333;
+    border-bottom: 2px solid var(--brand-accent);
 }
 
 .show-info {
@@ -61,7 +62,7 @@
     font-size: 1.2rem;
     font-weight: 600;
     margin-bottom: 1rem;
-    color: #444;
+    color: var(--brand-primary);
 }
 
 .selected-seats-review {
@@ -84,14 +85,14 @@
     justify-content: space-between;
     align-items: center;
     padding-top: 1.5rem;
-    border-top: 2px solid #333;
+    border-top: 2px solid var(--brand-accent);
     font-size: 1.1rem;
     font-weight: bold;
 }
 
 .final-price strong:last-child {
     font-size: 1.8rem;
-    color: #ff4081;
+    color: var(--brand-accent);
 }
 
 .checkout-form {
@@ -113,13 +114,13 @@
 .checkout-form input,
 .checkout-form select {
     padding: 12px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 6px;
     font-size: 1rem;
 }
 
 .checkout-button.primary {
-    background: linear-gradient(45deg, #ff4081 30%, #ff8e53 90%);
+    background: linear-gradient(45deg, var(--brand-accent) 30%, #fb923c 90%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -138,7 +139,7 @@
 }
 
 .checkout-button.primary:hover:not(:disabled) {
-    box-shadow: 0 4px 15px rgba(255, 107, 139, 0.5);
+    box-shadow: 0 4px 15px rgba(249, 115, 22, 0.5);
     transform: translateY(-2px);
 }
 
@@ -162,4 +163,24 @@
 .error-page {
     padding: 3rem;
     text-align: center;
+}
+
+.checkout-icon-fail {
+    font-size: 4rem;
+    color: #dc3545;
+}
+
+.error-message {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.checkout-code {
+    font-size: 0.9rem;
+    color: #6c757d;
+    background-color: #e9ecef;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    display: inline-block;
 }

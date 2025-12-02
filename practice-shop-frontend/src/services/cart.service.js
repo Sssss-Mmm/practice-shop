@@ -24,6 +24,9 @@ const addItem = (productId, quantity) => {
     });
 };
 
+// alias to keep naming consistent with UI handlers
+const addToCart = addItem;
+
 const updateItem = (cartItemId, quantity) => {
     return axios.put(`${API_URL}/items/${cartItemId}`, { quantity }, authConfig()).then((response) => {
         notify(response.data);
@@ -57,6 +60,7 @@ const onChange = (callback) => {
 const CartService = {
     getCart,
     addItem,
+    addToCart,
     updateItem,
     removeItem,
     clearCart,

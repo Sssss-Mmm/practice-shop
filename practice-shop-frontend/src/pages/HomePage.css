@@ -1,11 +1,12 @@
 .homepage-container {
     background-color: #f8f9fa;
+    color: var(--brand-primary);
 }
 
 .hero-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=2070&auto=format&fit=crop') no-repeat center center;
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=2070&auto=format&fit=crop') no-repeat center center;
     background-size: cover;
-    color: white;
+    color: #fff;
     padding: 6rem 1rem;
     text-align: center;
 }
@@ -20,14 +21,15 @@
     display: flex;
     max-width: 600px;
     margin: 0 auto;
-    background-color: white;
+    background-color: #fff;
+    border: 1px solid var(--border);
     border-radius: 50px;
     padding: 0.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 
 .search-bar .search-icon {
-    color: #6c757d;
+    color: var(--muted);
     font-size: 1.2rem;
     margin: auto 1rem;
 }
@@ -41,8 +43,8 @@
 }
 
 .search-bar button {
-    background-color: #007bff;
-    color: white;
+    background-color: var(--brand-accent);
+    color: #fff;
     border: none;
     border-radius: 50px;
     padding: 0.75rem 1.5rem;
@@ -52,7 +54,7 @@
 }
 
 .search-bar button:hover {
-    background-color: #0056b3;
+    background-color: #ea580c;
 }
 
 .section-title {
@@ -97,7 +99,7 @@
 }
 
 .product-card .card-text {
-    color: #6c757d;
+    color: var(--muted);
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
 }
@@ -105,5 +107,5 @@
 .product-card .price {
     font-weight: 700;
     font-size: 1.2rem;
-    color: #343a40;
+    color: var(--brand-primary);
 }

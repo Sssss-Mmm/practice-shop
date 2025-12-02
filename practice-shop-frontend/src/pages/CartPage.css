@@ -5,6 +5,7 @@
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    color: var(--brand-primary);
 }
 
 .cart-container h1 {
@@ -21,7 +22,7 @@
 .cart-table td {
     padding: 0.75rem;
     text-align: left;
-    border-bottom: 1px solid #e4e4e4;
+    border-bottom: 1px solid var(--border);
 }
 
 .cart-product-info {
@@ -41,7 +42,7 @@
 .cart-table input[type="number"] {
     width: 80px;
     padding: 0.4rem 0.6rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 4px;
 }
 
@@ -78,13 +79,13 @@
 }
 
 .cart-button.primary {
-    background: #007bff;
+    background: var(--brand-accent);
     color: #fff;
 }
 
 .cart-button.secondary {
     background: #f1f1f1;
-    color: #333;
+    color: var(--brand-primary);
 }
 
 .cart-button:disabled {

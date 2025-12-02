@@ -6,10 +6,16 @@ const USER_STORAGE_KEY = 'user';
 const AUTH_EVENT = 'auth-change';
 
 class AuthService {
-    async login(email, password) {
-        const response = await axios.post(`${API_URL}/login`, { email, password });
+    async login(username, password) { // LoginPage에서 'username'으로 호출
+        // LoginPage에서는 'username'으로 사용하지만, 백엔드 API는 'email'을 기대하므로
+        // 요청 객체의 키를 'email'로 명시적으로 설정합니다.
+        const response = await axios.post(`${API_URL}/login`, { 
+            email: username, // 'username' 변수의 값을 'email' 키에 담아 전송
+            password 
+        }); 
         if (response.data?.accessToken) {
             this.persistUser(response.data.accessToken, response.data.refreshToken);
+            console.log(response.data);
         }
         return response.data;
     }
@@ -57,17 +63,32 @@ class AuthService {
         if (response.data?.accessToken) {
             this.persistUser(response.data.accessToken, response.data.refreshToken);
         }
+        console.log(response.data);
         return response.data;
     }
 
     getCurrentUser() {
         const raw = localStorage.getItem(USER_STORAGE_KEY);
+        console.log('Getting current user from localStorage:', raw);
         if (!raw) {
             return null;
         }
 
         try {
-            return JSON.parse(raw);
+            const stored = JSON.parse(raw);
+            // roles가 비어있거나 누락된 경우 토큰에서 재생성
+            if (!stored?.roles?.length && stored?.accessToken) {
+                const decoded = this.decodeToken(stored.accessToken);
+                const rawRoles = decoded?.roles || decoded?.authorities || decoded?.scope || decoded?.role;
+                const rolesArray = Array.isArray(rawRoles)
+                    ? rawRoles
+                    : rawRoles
+                        ? String(rawRoles).split(',').map((r) => r.trim())
+                        : [];
+                stored.roles = rolesArray;
+                localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(stored));
+            }
+            return stored;
         } catch (error) {
             this.clearUser();
             return null;
@@ -109,12 +130,19 @@ class AuthService {
 
     persistUser(accessToken, refreshToken) {
         const decoded = this.decodeToken(accessToken);
+        const rawRoles = decoded?.roles || decoded?.authorities || decoded?.scope || decoded?.role;
+        const rolesArray = Array.isArray(rawRoles)
+            ? rawRoles
+            : rawRoles
+                ? String(rawRoles).split(',').map((r) => r.trim())
+                : [];
+
         const user = {
             accessToken,
             refreshToken,
             email: decoded?.sub ?? null,
             username: decoded?.username ?? decoded?.sub ?? null,
-            roles: decoded?.role ? [decoded.role] : [],
+            roles: rolesArray,
         };
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
         window.dispatchEvent(new Event(AUTH_EVENT));
