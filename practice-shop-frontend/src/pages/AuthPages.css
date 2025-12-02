@@ -12,7 +12,7 @@
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 400px;
+    max-width: 450px;
 }
 
 .auth-icon {
@@ -49,3 +49,41 @@
 .ticket-auth-card .btn-link {
     font-size: 0.9rem;
 }
+
+.social-login-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #6c757d;
+    margin: 1.5rem 0;
+}
+
+.social-login-divider::before,
+.social-login-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.social-login-text {
+    padding: 0 1rem;
+    font-size: 0.9rem;
+}
+
+.btn-social {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+}
+
+.btn-social .social-icon {
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.btn-google { background-color: #fff; color: #444; border: 1px solid #ddd; }
+.btn-google:hover { background-color: #f8f8f8; }
+
+.btn-naver { background-color: #03C75A; color: white; border: none; }
+.btn-kakao { background-color: #FEE500; color: #191919; border: none; }
