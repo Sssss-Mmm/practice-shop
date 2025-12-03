@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ProductService from '../services/product.service';
+import { useAuth } from '../context/AuthContext';
 import './HomePage.css';
 import { FaSearch } from 'react-icons/fa';
 
@@ -10,6 +11,7 @@ import { FaSearch } from 'react-icons/fa';
  * @returns {JSX.Element} HomePage 컴포넌트
  */
 const HomePage = () => {
+    const { currentUser } = useAuth();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -97,22 +99,33 @@ const HomePage = () => {
                 {error && <div className="alert alert-danger">{error}</div>}
 
                 {!loading && !error && (
-                    <div className="row">
-                        {filteredProducts.map((product) => (
-                            <div className="col-md-4 col-lg-3 mb-4" key={product.id}>
-                                <Link to={`/products/${product.id}`} className="card-link">
-                                    <div className="card h-100 product-card">
-                                        <img src={resolveImageUrl(product.imageUrls[0])} className="card-img-top" alt={product.name} />
-                                        <div className="card-body">
-                                            <h5 className="card-title">{product.name}</h5>
-                                            <p className="card-text">{product.venueName || '장소 정보 없음'}</p>
-                                            <p className="card-text price">{product.price.toLocaleString()}원</p>
+                    filteredProducts.length > 0 ? (
+                        <div className="row">
+                            {filteredProducts.map((product) => (
+                                <div className="col-md-4 col-lg-3 mb-4" key={product.id}>
+                                    <Link to={`/products/${product.id}`} className="card-link">
+                                        <div className="card h-100 product-card">
+                                            <img src={resolveImageUrl(product.imageUrls[0])} className="card-img-top" alt={product.name} />
+                                            <div className="card-body">
+                                                <h5 className="card-title">{product.name}</h5>
+                                                <p className="card-text">{product.venueName || '장소 정보 없음'}</p>
+                                                <p className="card-text price">{product.price.toLocaleString()}원</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </Link>
-                            </div>
-                        ))}
-                    </div>
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-5">
+                            <p className="text-muted mb-3">현재 표시할 공연/상품이 없습니다.</p>
+                            {currentUser?.roles?.includes('ADMIN') || currentUser?.roles?.includes('ROLE_ADMIN') ? (
+                                <Link to="/product-registration" className="btn btn-primary">공연/상품 등록하기</Link>
+                            ) : (
+                                <Link to="/" className="btn btn-outline-secondary">새로고침</Link>
+                            )}
+                        </div>
+                    )
                 )}
             </main>
         </div>
