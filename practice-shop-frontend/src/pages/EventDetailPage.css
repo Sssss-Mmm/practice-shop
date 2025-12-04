@@ -1,137 +1,248 @@
 .page-container {
-    padding: 40px 20px;
+    padding: 30px 16px;
     background-color: #f8f9fa;
-    min-height: 80vh;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
     color: var(--brand-primary);
 }
 
-.booking-detail-card {
-    width: 100%;
-    max-width: 900px;
-    background-color: #ffffff;
+.event-detail {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.event-hero {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+    background: #fff;
+    border: 1px solid var(--border);
     border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-    padding: 30px 40px;
+    padding: 20px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.05);
 }
 
-.booking-detail-header {
+.hero-left {
     display: flex;
-    gap: 30px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 30px;
-    margin-bottom: 30px;
+    justify-content: center;
 }
 
-.booking-image-wrapper {
-    flex-shrink: 0;
-}
-
-.booking-event-image {
-    width: 200px;
-    height: 280px;
-    object-fit: cover;
+.hero-poster {
+    width: 260px;
     border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.18);
 }
 
-.booking-info-wrapper {
+.hero-right {
     display: flex;
     flex-direction: column;
+    gap: 8px;
 }
 
-.booking-event-title {
-    font-size: 2.2rem;
-    font-weight: 700;
-    margin: 0 0 15px;
+.hero-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin: 0 0 8px;
 }
 
-.booking-event-meta {
-    margin: 4px 0;
-    font-size: 1rem;
+.hero-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 6px 16px;
+    font-size: 0.95rem;
     color: var(--muted);
 }
 
-.booking-event-meta strong {
-    font-weight: 600;
-    color: var(--brand-primary);
+.hero-prices {
+    margin-top: 8px;
+    font-size: 0.95rem;
 }
 
-.showtime-selection-section {
-    margin-bottom: 30px;
+.hero-prices p {
+    margin: 2px 0;
 }
 
-.showtime-selection-section h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 20px;
-    color: var(--brand-primary);
+.hero-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
 }
 
-.showtime-list {
+.booking-module {
+    margin-top: 20px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+}
+
+.booking-step + .booking-step {
+    border-top: 1px solid var(--border);
+    margin-top: 12px;
+    padding-top: 12px;
+}
+
+.step-title {
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.date-grid, .showtime-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 8px;
 }
 
-.showtime-btn {
-    background-color: #fff;
+.date-chip {
     border: 1px solid var(--border);
     border-radius: 20px;
-    padding: 10px 20px;
-    font-size: 0.95rem;
+    padding: 8px 12px;
+    background: #fff;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
 }
 
-.showtime-btn:hover {
-    background-color: #f3f4f6;
-    border-color: #d1d5db;
-}
-
-.showtime-btn.selected {
-    background-color: var(--brand-accent);
+.date-chip.active {
+    background: var(--brand-accent);
     color: #fff;
     border-color: var(--brand-accent);
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.4);
 }
 
-.no-showtimes-msg {
-    color: #888;
-    font-style: italic;
+.showtime-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    min-width: 180px;
+    background: #fff;
+    cursor: pointer;
+    text-align: left;
+}
+
+.showtime-card.active {
+    border-color: var(--brand-accent);
+    box-shadow: 0 8px 16px rgba(249,115,22,0.15);
+}
+
+.showtime-time {
+    font-weight: 700;
+}
+
+.showtime-status {
+    font-size: 0.85rem;
+    color: var(--muted);
 }
 
 .booking-actions {
-    text-align: right;
-    margin-top: 40px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
 }
 
-.next-step-btn {
-    background: linear-gradient(45deg, var(--brand-accent) 30%, #fb923c 90%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 14px 40px;
-    font-size: 1.1rem;
+.bottom-actions {
+    margin-top: 10px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.cast-section {
+    margin-top: 20px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cast-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.cast-chip {
+    width: 110px;
+    text-align: center;
+}
+
+.cast-avatar {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 6px;
+    border-radius: 50%;
+    background: var(--brand-accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.2rem;
+}
+
+.cast-name {
     font-weight: 700;
+}
+
+.cast-role {
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.tabs-section {
+    margin-top: 20px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.tab {
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 999px;
+    padding: 8px 14px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
 }
 
-.next-step-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5);
+.tab.active {
+    background: var(--brand-accent);
+    color: #fff;
+    border-color: var(--brand-accent);
 }
 
-.next-step-btn:disabled {
-    background: #ccc;
-    box-shadow: none;
-    cursor: not-allowed;
-    transform: none;
+.tab-panel {
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    color: var(--brand-primary);
+}
+
+.venue-map {
+    margin-top: 20px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.map-placeholder {
+    margin-top: 10px;
+    height: 320px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
 }
 
 .loading-box, .error-box {

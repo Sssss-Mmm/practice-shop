@@ -7,8 +7,6 @@ import SignupPage from './pages/SignupPage';
 import OAuth2RedirectHandler from './pages/OAuth2RedirectHandler';
 import ProfilePage from './pages/ProfilePage';
 import OAuth2RegisterPage from './pages/OAuth2RegisterPage';
-import ProductRegistrationPage from './pages/ProductRegistrationPage';
-import ProductDetailPage from './pages/ProductDetailPage';
 import EventDetailPage from './pages/EventDetailPage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
 import ResendVerificationPage from './pages/ResendVerificationPage';
@@ -18,7 +16,6 @@ import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrdersPage from './pages/OrdersPage';
 import OrderDetailPage from './pages/OrderDetailPage';
-import ProductEditPage from './pages/ProductEditPage';
 import TossSuccessPage from './pages/TossSuccessPage';
 import TossFailPage from './pages/TossFailPage';
 import VenueAdminPage from './pages/VenueAdminPage';
@@ -26,6 +23,7 @@ import EventAdminPage from './pages/EventAdminPage';
 import SeatSelectionPage from './pages/SeatSelectionPage';
 import ShowtimeAdminPage from './pages/ShowtimeAdminPage';
 import SeatAdminPage from './pages/SeatAdminPage';
+import EventWizardPage from './pages/EventWizardPage';
 
 /**
  * 애플리케이션의 최상위 컴포넌트입니다.
@@ -42,8 +40,6 @@ function App() {
         <Route path="/auth/oauth2/redirect" element={<OAuth2RedirectHandler />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/auth/oauth2/register" element={<OAuth2RegisterPage />} />
-        <Route path="/product-registration" element={<ProductRegistrationPage />} />
-        <Route path="/products/:id" element={<ProductDetailPage />} /> {/* 새로운 상세 페이지 경로 */}
         <Route path="/events/:eventId" element={<EventDetailPage />} />
         <Route path="/book/showtime/:showtimeId/seats" element={<SeatSelectionPage />} />
         <Route path="/cart" element={<CartPage />} />
@@ -56,11 +52,11 @@ function App() {
         <Route path="/admin/events" element={<EventAdminPage />} />
         <Route path="/admin/showtimes" element={<ShowtimeAdminPage />} />
         <Route path="/admin/seats" element={<SeatAdminPage />} />
+        <Route path="/admin/wizard" element={<EventWizardPage />} />
         <Route path="/verify-email" element={<EmailVerificationPage />} />
         <Route path="/resend-verification" element={<ResendVerificationPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="products/:productId/edit" element={<ProductEditPage />} />
       </Routes>
     </Layout>
   );

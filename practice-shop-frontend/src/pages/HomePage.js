@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import ProductService from '../services/product.service';
+import { Link, useSearchParams } from 'react-router-dom';
+import EventService from '../services/event.service';
 import { useAuth } from '../context/AuthContext';
 import './HomePage.css';
 import { FaSearch } from 'react-icons/fa';
@@ -12,10 +12,12 @@ import { FaSearch } from 'react-icons/fa';
  */
 const HomePage = () => {
     const { currentUser } = useAuth();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('ALL'); // ALL | STAGE | SPORTS
 
     /**
      * 컴포넌트가 마운트될 때 모든 공연(상품) 목록을 서버에서 가져옵니다.
@@ -23,12 +25,10 @@ const HomePage = () => {
      */
     useEffect(() => {
         setLoading(true);
-        ProductService.getAllProducts()
+        EventService.listEvents()
             .then((response) => {
-                // 백엔드에서 받은 데이터가 페이지네이션 객체일 경우, content 배열을 사용합니다.
-                // 그렇지 않고 단순 배열일 경우를 대비하여 response.data가 배열인지 확인합니다.
-                const productData = Array.isArray(response.data) ? response.data : response.data.content;
-                setProducts(productData || []);
+                const data = Array.isArray(response.data) ? response.data : response.data?.content;
+                setProducts(data || []);
                 setError(null);
             })
             .catch((err) => {
@@ -61,12 +61,26 @@ const HomePage = () => {
         return `${apiBase}${encodedPath}`;
     };
 
+    // URL 쿼리 파라미터 -> 검색/카테고리 반영
+    useEffect(() => {
+        const q = searchParams.get('q') || '';
+        const category = (searchParams.get('category') || 'ALL').toUpperCase();
+        setSearchTerm(q);
+        setCategoryFilter(['STAGE', 'SPORTS'].includes(category) ? category : 'ALL');
+    }, [searchParams]);
+
     /**
      * 'products' 배열에서 'searchTerm'을 기준으로 공연 이름을 필터링합니다.
      */
-    const filteredProducts = products.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const normalizeCategory = (category) => {
+        const c = (category || '').toString().toLowerCase();
+        if (c.includes('sport') || c.includes('스포츠')) return 'SPORTS';
+        return 'STAGE';
+    };
+
+    const filteredProducts = products
+        .filter(event => (event.title || '').toLowerCase().includes(searchTerm.toLowerCase()))
+        .filter(event => categoryFilter === 'ALL' ? true : normalizeCategory(event.category) === categoryFilter);
 
     return (
         <div className="homepage-container">
@@ -87,7 +101,29 @@ const HomePage = () => {
             </section>
 
             <main className="container my-5">
-                <h2 className="section-title">진행중인 공연</h2>
+                <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-3 mb-3">
+                    <h2 className="section-title mb-0">진행중인 공연/상품</h2>
+                    <div className="category-filters">
+                        <button
+                            className={`filter-btn ${categoryFilter === 'ALL' ? 'active' : ''}`}
+                            onClick={() => setSearchParams({ ...(searchTerm ? { q: searchTerm } : {}) })}
+                        >
+                            전체
+                        </button>
+                        <button
+                            className={`filter-btn ${categoryFilter === 'STAGE' ? 'active' : ''}`}
+                            onClick={() => setSearchParams({ ...(searchTerm ? { q: searchTerm } : {}), category: 'STAGE' })}
+                        >
+                            공연/전시
+                        </button>
+                        <button
+                            className={`filter-btn ${categoryFilter === 'SPORTS' ? 'active' : ''}`}
+                            onClick={() => setSearchParams({ ...(searchTerm ? { q: searchTerm } : {}), category: 'SPORTS' })}
+                        >
+                            스포츠
+                        </button>
+                    </div>
+                </div>
 
                 {loading && (
                     <div className="text-center">
@@ -101,15 +137,15 @@ const HomePage = () => {
                 {!loading && !error && (
                     filteredProducts.length > 0 ? (
                         <div className="row">
-                            {filteredProducts.map((product) => (
-                                <div className="col-md-4 col-lg-3 mb-4" key={product.id}>
-                                    <Link to={`/products/${product.id}`} className="card-link">
+                            {filteredProducts.map((event) => (
+                                <div className="col-md-4 col-lg-3 mb-4" key={event.eventId || event.id}>
+                                    <Link to={`/events/${event.eventId || event.id}`} className="card-link">
                                         <div className="card h-100 product-card">
-                                            <img src={resolveImageUrl(product.imageUrls[0])} className="card-img-top" alt={product.name} />
+                                            <img src={resolveImageUrl(event.posterImageUrl || event.imageUrls?.[0])} className="card-img-top" alt={event.title} />
                                             <div className="card-body">
-                                                <h5 className="card-title">{product.name}</h5>
-                                                <p className="card-text">{product.venueName || '장소 정보 없음'}</p>
-                                                <p className="card-text price">{product.price.toLocaleString()}원</p>
+                                                <h5 className="card-title">{event.title}</h5>
+                                                <p className="card-text">{event.venueName || '장소 정보 없음'}</p>
+                                                <p className="card-text price">{event.salesStartDate ? `${event.salesStartDate} ~ ${event.salesEndDate || ''}` : (event.status || '')}</p>
                                             </div>
                                         </div>
                                     </Link>
@@ -120,7 +156,7 @@ const HomePage = () => {
                         <div className="text-center py-5">
                             <p className="text-muted mb-3">현재 표시할 공연/상품이 없습니다.</p>
                             {currentUser?.roles?.includes('ADMIN') || currentUser?.roles?.includes('ROLE_ADMIN') ? (
-                                <Link to="/product-registration" className="btn btn-primary">공연/상품 등록하기</Link>
+                                <Link to="/admin/events" className="btn btn-primary">공연 등록하기</Link>
                             ) : (
                                 <Link to="/" className="btn btn-outline-secondary">새로고침</Link>
                             )}

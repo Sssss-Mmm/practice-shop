@@ -16,6 +16,13 @@ const initialForm = {
     status: 'DRAFT',
 };
 
+const eventStatuses = [
+    { value: 'DRAFT', label: '준비중' },
+    { value: 'ON_SALE', label: '판매중' },
+    { value: 'COMPLETED', label: '종료' },
+    { value: 'CANCELED', label: '취소' },
+];
+
 const EventAdminPage = () => {
     const [venues, setVenues] = useState([]);
     const [events, setEvents] = useState([]);
@@ -102,10 +109,9 @@ const EventAdminPage = () => {
 
                     <label>상태</label>
                     <select name="status" value={form.status} onChange={handleChange}>
-                        <option value="DRAFT">DRAFT</option>
-                        <option value="ON_SALE">ON_SALE</option>
-                        <option value="COMPLETED">COMPLETED</option>
-                        <option value="CANCELED">CANCELED</option>
+                        {eventStatuses.map((s) => (
+                            <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
                     </select>
 
                     <button type="submit">저장</button>

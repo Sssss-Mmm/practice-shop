@@ -3,19 +3,70 @@
 }
 
 .ticket-brand {
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: 0.5px;
 }
 
-.navbar-dark .navbar-nav .nav-link {
-    display: flex;
-    align-items: center;
-    color: #e5e7eb;
+.header-topbar {
+    background: #f8fafc;
+    padding: 0.35rem 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border);
 }
 
-.navbar-dark .navbar-nav .nav-link:hover,
-.navbar-dark .navbar-nav .nav-link:focus {
+.toplink, .toplink-btn {
+    color: var(--muted);
+    text-decoration: none;
+    border: none;
+    background: none;
+    padding: 0;
+}
+
+.toplink:hover, .toplink-btn:hover {
     color: var(--brand-accent);
+}
+
+.main-nav {
+    border-bottom: 1px solid var(--border);
+}
+
+.main-tabs .tab-link {
+    border: none;
+    background: none;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--brand-primary);
+    padding: 0.6rem 0.9rem;
+    cursor: pointer;
+}
+
+.main-tabs .tab-link:hover,
+.main-tabs .tab-link.active {
+    color: var(--brand-accent);
+    text-decoration: underline;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.search-bar input {
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.35rem 0.75rem;
+    min-width: 220px;
+}
+
+.search-bar button {
+    border: none;
+    background: var(--brand-accent);
+    color: #fff;
+    border-radius: 18px;
+    padding: 0.35rem 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
 }
 
 .navbar .badge {
@@ -23,8 +74,8 @@
     vertical-align: middle;
 }
 
-.dropdown-menu-dark .dropdown-item:hover,
-.dropdown-menu-dark .dropdown-item:focus {
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
     background-color: rgba(249, 115, 22, 0.1);
     color: var(--brand-primary);
 }

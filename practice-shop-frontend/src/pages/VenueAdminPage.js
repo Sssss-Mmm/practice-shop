@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import VenueService from '../services/venue.service';
 import './TicketingAdmin.css';
 
@@ -19,6 +19,9 @@ const VenueAdminPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [message, setMessage] = useState('');
+    const mapContainerRef = useRef(null);
+    const mapRef = useRef(null);
+    const [mapError, setMapError] = useState(null);
 
     const loadVenues = () => {
         setLoading(true);
@@ -36,6 +39,52 @@ const VenueAdminPage = () => {
     useEffect(() => {
         loadVenues();
     }, []);
+
+    useEffect(() => {
+        const addr = form.addressLine1;
+        if (!addr || !mapContainerRef.current) return;
+
+        const loadKakao = () => {
+            if (window.kakao && window.kakao.maps) return Promise.resolve(window.kakao);
+            const appKey = process.env.REACT_APP_KAKAO_MAP_KEY;
+            if (!appKey) {
+                return Promise.reject(new Error('Kakao 지도 API 키가 없습니다. .env에 REACT_APP_KAKAO_MAP_KEY를 설정하세요.'));
+            }
+            return new Promise((resolve, reject) => {
+                const existing = document.querySelector('script[src*="dapi.kakao.com/v2/maps/sdk.js"]');
+                if (existing) {
+                    existing.onload = () => window.kakao.maps.load(() => resolve(window.kakao));
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false&libraries=services`;
+                script.async = true;
+                script.onload = () => window.kakao.maps.load(() => resolve(window.kakao));
+                script.onerror = () => reject(new Error('Kakao 지도 스크립트를 불러오지 못했습니다.'));
+                document.head.appendChild(script);
+            });
+        };
+
+        loadKakao()
+            .then((kakao) => {
+                const geocoder = new kakao.maps.services.Geocoder();
+                geocoder.addressSearch(addr, (result, status) => {
+                    if (status === kakao.maps.services.Status.OK) {
+                        const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                        const map = new kakao.maps.Map(mapContainerRef.current, {
+                            center: coords,
+                            level: 3,
+                        });
+                        new kakao.maps.Marker({ map, position: coords });
+                        mapRef.current = map;
+                        setMapError(null);
+                    } else {
+                        setMapError('주소로 위치를 찾지 못했습니다.');
+                    }
+                });
+            })
+            .catch((err) => setMapError(err.message));
+    }, [form.addressLine1]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -90,6 +139,8 @@ const VenueAdminPage = () => {
                     <button type="submit">저장</button>
                     {message && <p className="ticketing-success">{message}</p>}
                     {error && <p className="ticketing-error">{error}</p>}
+                    <div className="map-preview" ref={mapContainerRef} aria-label="공연장 위치 미리보기" />
+                    {mapError && <p className="ticketing-error">{mapError}</p>}
                 </form>
 
                 <div className="ticketing-list">

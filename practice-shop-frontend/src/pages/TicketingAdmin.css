@@ -98,6 +98,14 @@
     border-bottom: 1px solid var(--border);
 }
 
+.map-preview {
+    margin-top: 0.5rem;
+    height: 260px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
 .ticketing-success {
     color: #16a34a;
 }

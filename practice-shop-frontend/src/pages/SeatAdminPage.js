@@ -13,6 +13,14 @@ const initialForm = {
     status: 'AVAILABLE',
 };
 
+const seatStatuses = [
+    { value: 'AVAILABLE', label: '선택 가능' },
+    { value: 'HOLD', label: '홀드' },
+    { value: 'RESERVED', label: '예약됨' },
+    { value: 'SOLD', label: '판매됨' },
+    { value: 'DISABLED', label: '비활성' },
+];
+
 const SeatAdminPage = () => {
     const [venues, setVenues] = useState([]);
     const [seats, setSeats] = useState([]);
@@ -89,11 +97,9 @@ const SeatAdminPage = () => {
 
                     <label>상태</label>
                     <select name="status" value={form.status} onChange={handleChange}>
-                        <option value="AVAILABLE">AVAILABLE</option>
-                        <option value="HOLD">HOLD</option>
-                        <option value="RESERVED">RESERVED</option>
-                        <option value="SOLD">SOLD</option>
-                        <option value="DISABLED">DISABLED</option>
+                        {seatStatuses.map((s) => (
+                            <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
                     </select>
 
                     <button type="submit">저장</button>
