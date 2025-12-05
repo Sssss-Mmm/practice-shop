@@ -24,6 +24,7 @@ import SeatSelectionPage from './pages/SeatSelectionPage';
 import ShowtimeAdminPage from './pages/ShowtimeAdminPage';
 import SeatAdminPage from './pages/SeatAdminPage';
 import EventWizardPage from './pages/EventWizardPage';
+import SeatMapperPage from './pages/SeatMapperPage';
 
 /**
  * 애플리케이션의 최상위 컴포넌트입니다.
@@ -53,6 +54,7 @@ function App() {
         <Route path="/admin/showtimes" element={<ShowtimeAdminPage />} />
         <Route path="/admin/seats" element={<SeatAdminPage />} />
         <Route path="/admin/wizard" element={<EventWizardPage />} />
+        <Route path="/admin/seat-mapper" element={<SeatMapperPage />} />
         <Route path="/verify-email" element={<EmailVerificationPage />} />
         <Route path="/resend-verification" element={<ResendVerificationPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

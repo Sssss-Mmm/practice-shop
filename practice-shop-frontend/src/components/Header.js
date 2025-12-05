@@ -92,6 +92,7 @@ const Header = () => {
                                             </a>
                                             <ul className="dropdown-menu dropdown-menu-end">
                                                 <li><Link className="dropdown-item" to="/admin/wizard">올인원 등록(위저드)</Link></li>
+                                                <li><Link className="dropdown-item" to="/admin/seat-mapper">좌석 매퍼</Link></li>
                                                 <li><Link className="dropdown-item" to="/admin/events">공연 등록/관리</Link></li>
                                                 <li><Link className="dropdown-item" to="/admin/venues">공연장 관리</Link></li>
                                                 <li><Link className="dropdown-item" to="/admin/showtimes">회차 관리</Link></li>

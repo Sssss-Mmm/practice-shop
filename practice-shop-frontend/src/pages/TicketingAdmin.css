@@ -98,12 +98,39 @@
     border-bottom: 1px solid var(--border);
 }
 
+.facility-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.4rem;
+}
+
+.facility-check {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 500;
+}
+
 .map-preview {
     margin-top: 0.5rem;
     height: 260px;
     border: 1px solid var(--border);
     border-radius: 8px;
     overflow: hidden;
+}
+
+.venue-thumb {
+  margin-top: 0.5rem;
+  max-width: 240px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.seat-batch-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-top: 0.5rem;
 }
 
 .ticketing-success {

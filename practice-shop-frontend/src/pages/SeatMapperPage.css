@@ -1,0 +1,146 @@
+.seat-mapper-page {
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  padding: 0 1rem 2rem;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.mapper-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.mapper-controls {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.mapper-controls h3 {
+  margin-top: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.mapper-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+}
+
+.mapper-controls input,
+.mapper-controls select,
+.mapper-controls textarea {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.6rem 0;
+}
+
+.zone-list {
+  max-height: 200px;
+  overflow: auto;
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+}
+
+.zone-item {
+  padding: 0.2rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.json-preview {
+  background: #0f172a;
+  color: #e5e7eb;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  overflow: auto;
+}
+
+.mapper-stage-wrapper {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.mapper-stage {
+  position: relative;
+  width: 100%;
+  height: 620px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: crosshair;
+}
+
+.mapper-stage.drawing {
+  border-color: var(--brand-accent);
+}
+
+.mapper-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.stage-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.zone-polygon {
+  fill: rgba(249, 115, 22, 0.22);
+  stroke: var(--brand-accent);
+  stroke-width: 2;
+}
+
+.zone-polyline {
+  fill: none;
+  stroke: rgba(249, 115, 22, 0.65);
+  stroke-width: 2;
+}
+
+.zone-point {
+  fill: #fff;
+  stroke: var(--brand-accent);
+  stroke-width: 2;
+}
+
+@media (max-width: 960px) {
+  .mapper-grid {
+    grid-template-columns: 1fr;
+  }
+  .mapper-stage {
+    height: 480px;
+  }
+}
