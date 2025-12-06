@@ -34,6 +34,15 @@ public class SeatController {
     }
 
     /**
+     * 좌석 대량 등록
+     */
+    @PostMapping("/batch")
+    @Operation(summary = "좌석 대량 등록")
+    public ResponseEntity<List<SeatResponse>> createBatch(@Valid @RequestBody List<SeatRequest> requests) {
+        return ResponseEntity.ok(seatService.createBatch(requests));
+    }
+
+    /**
      * 공연장별 좌석 목록 조회
      * @param venueId
      * @return
