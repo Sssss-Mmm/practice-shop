@@ -38,7 +38,7 @@ public class SeatController {
      */
     @PostMapping("/batch")
     @Operation(summary = "좌석 대량 등록")
-    public ResponseEntity<List<SeatResponse>> createBatch(@Valid @RequestBody List<SeatRequest> requests) {
+    public ResponseEntity<List<SeatResponse>> createBatch(@Valid @RequestBody List<@Valid SeatRequest> requests) {
         return ResponseEntity.ok(seatService.createBatch(requests));
     }
 
