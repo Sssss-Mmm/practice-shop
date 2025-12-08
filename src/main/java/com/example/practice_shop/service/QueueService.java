@@ -15,6 +15,12 @@ import org.springframework.util.CollectionUtils;
 @RequiredArgsConstructor
 public class QueueService {
 
+    /**
+     * Redis 기반 대기열을 관리하는 서비스.
+     * - queue:{eventId}: 정렬집합으로 순번 관리
+     * - queue:ready:{eventId}: 입장 허용 토큰 모음
+     * - queue:token:{token}: 토큰 메타 정보(eventId, userId 등)
+     */
     private static final String QUEUE_KEY_PREFIX = "queue:";
     private static final String READY_KEY_PREFIX = "queue:ready:";
     private static final String TOKEN_KEY_PREFIX = "queue:token:";

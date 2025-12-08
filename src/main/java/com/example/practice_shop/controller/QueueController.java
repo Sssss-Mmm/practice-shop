@@ -19,6 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class QueueController {
 
+    /**
+     * 대기열 진입/상태 조회 API 컨트롤러.
+     * 프론트는 enter로 토큰을 받고, status를 폴링하며 ready 여부를 확인한다.
+     */
     private final QueueService queueService;
 
     @PostMapping("/enter/{eventId}")

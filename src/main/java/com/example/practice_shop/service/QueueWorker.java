@@ -15,6 +15,10 @@ public class QueueWorker {
 
     private final QueueService queueService;
 
+    /**
+     * 주기적으로 큐를 스캔해 이벤트별로 일정 수량을 입장 허용한다.
+     * 운영 정책에 맞게 allowEntriesForEvent 호출 파라미터를 확장하면 된다.
+     */
     @Scheduled(fixedDelay = 2000)
     public void allowEntries() {
         Set<String> queueKeys = queueService.listQueueKeys();

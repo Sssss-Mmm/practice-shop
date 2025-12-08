@@ -38,6 +38,7 @@ public class SeatService {
 
     /**
      * 좌석 일괄 등록
+     * 모든 SeatRequest의 venueId가 동일해야 하며, status가 비어 있으면 기본 AVAILABLE로 설정한다.
      */
     @Transactional
     public List<SeatResponse> createBatch(List<SeatRequest> requests) {
