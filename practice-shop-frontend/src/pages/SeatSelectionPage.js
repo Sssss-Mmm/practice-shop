@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import SeatService from '../services/seat.service';
 import ShowtimeService from '../services/showtime.service';
+import WebSocketService from '../services/websocket.service';
 import './SeatSelectionPage.css';
 
 const SeatSelectionPage = () => {
@@ -13,27 +14,64 @@ const SeatSelectionPage = () => {
     const [selectedSeats, setSelectedSeats] = useState([]);
     const [error, setError] = useState(null);
 
+    // Initial Data Fetch
     useEffect(() => {
-        // Fetch showtime details to get venue info
         ShowtimeService.getShowtime(showtimeId)
             .then(res => {
                 setShowtime(res.data);
-                // Fetch seats for the venue of this showtime
-                // In a real app, you'd fetch seats with their real-time status for the showtime
+                // Fetch real seats
                 return SeatService.listByVenue(res.data.venue.venueId);
             })
             .then(res => {
-                 // Simulate some seats being already booked
-                const simulatedSeats = res.data.map((seat, index) => ({
-                    ...seat,
-                    status: index % 7 === 0 || index % 11 === 0 ? 'RESERVED' : 'AVAILABLE'
-                }));
-                setSeats(simulatedSeats);
+                // In production, you would fetch the initial status from an API (e.g. GET /seats/status)
+                // For now, assume all available, or use the simulation logic partially if backend data isn't fully ready
+                setSeats(res.data.map(s => ({...s, status: s.status || 'AVAILABLE'})));
             })
             .catch(err => {
                 setError(err.response?.data?.message || '좌석 정보를 불러오는 데 실패했습니다.');
             });
     }, [showtimeId]);
+
+    // WebSocket Connection
+    useEffect(() => {
+        if (!showtimeId) return;
+
+        const onConnected = () => {
+             // Subscribe to seat updates for this showtime
+             WebSocketService.subscribe(`/topic/seat/${showtimeId}`, (message) => {
+                 // message is SeatStatusMessage
+                 // message.seats is a list of SeatStatusItem
+                 const updatedInfos = message.seats;
+                 
+                 setSeats(prevSeats => {
+                     // Create a map for quick lookup
+                     const updatesMap = new Map();
+                     updatedInfos.forEach(info => updatesMap.set(info.seatId, info.status));
+
+                     return prevSeats.map(seat => {
+                         if (updatesMap.has(seat.seatId)) {
+                             const newStatus = updatesMap.get(seat.seatId);
+                             // If the seat I selected is now reserved by someone else (and it wasn't me), I should deselect it
+                             // But here we rely on the user seeing it turn red.
+                             return { ...seat, status: newStatus };
+                         }
+                         return seat;
+                     });
+                 });
+             });
+        };
+
+        const onError = (err) => {
+            console.error("WebSocket Error:", err);
+        };
+
+        WebSocketService.connect(onConnected, onError);
+
+        return () => {
+            WebSocketService.disconnect();
+        };
+    }, [showtimeId]);
+
 
     const handleSeatClick = (seat) => {
         if (seat.status !== 'AVAILABLE') return;
@@ -43,7 +81,6 @@ const SeatSelectionPage = () => {
             if (isSelected) {
                 return prev.filter(s => s.seatId !== seat.seatId);
             } else {
-                // Add seat with its price info
                 return [...prev, { seatId: seat.seatId, section: seat.sectionName, row: seat.rowLabel, number: seat.seatNumber, price: seat.basePrice }];
             }
         });
@@ -80,6 +117,7 @@ const SeatSelectionPage = () => {
             return;
         }
         // Navigate to checkout page with selected seats info
+        // Note: You can also pass the queueToken if needed for validation at checkout
         navigate('/checkout', { state: { selectedSeats, showtimeId, showtimeInfo: showtime } });
     };
 

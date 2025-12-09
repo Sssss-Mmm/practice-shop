@@ -48,7 +48,8 @@ const EventDetailPage = () => {
 
     const handleBooking = () => {
         if (selectedShowtime) {
-            navigate(`/book/showtime/${selectedShowtime.id}/seats`);
+            // Navigate to Queue Waiting Page first
+            navigate(`/book/event/${eventId}/showtime/${selectedShowtime.id}/queue`);
         } else {
             alert('먼저 공연 회차를 선택해주세요.');
         }

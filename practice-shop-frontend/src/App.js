@@ -18,6 +18,7 @@ import OrdersPage from './pages/OrdersPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import TossSuccessPage from './pages/TossSuccessPage';
 import TossFailPage from './pages/TossFailPage';
+import QueueWaitingPage from './pages/QueueWaitingPage';
 import VenueAdminPage from './pages/VenueAdminPage';
 import EventAdminPage from './pages/EventAdminPage';
 import SeatSelectionPage from './pages/SeatSelectionPage';
@@ -42,6 +43,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/auth/oauth2/register" element={<OAuth2RegisterPage />} />
         <Route path="/events/:eventId" element={<EventDetailPage />} />
+        <Route path="/book/event/:eventId/showtime/:showtimeId/queue" element={<QueueWaitingPage />} />
         <Route path="/book/showtime/:showtimeId/seats" element={<SeatSelectionPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
