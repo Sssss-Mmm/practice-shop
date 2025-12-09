@@ -89,6 +89,19 @@ public class EventService {
                 .status(event.getStatus())
                 .venueId(event.getVenue() != null ? event.getVenue().getId() : null)
                 .venueName(event.getVenue() != null ? event.getVenue().getName() : null)
+                .showtimes(event.getShowtimes().stream().map(st -> ShowtimeResponse.builder()
+                        .showtimeId(st.getId())
+                        .eventId(st.getEvent().getId())
+                        .venueId(st.getVenue().getId())
+                        .eventTitle(st.getEvent().getTitle())
+                        .venueName(st.getVenue().getName())
+                        .startDateTime(st.getStartDateTime())
+                        .endDateTime(st.getEndDateTime())
+                        .salesOpenAt(st.getSalesOpenAt())
+                        .salesCloseAt(st.getSalesCloseAt())
+                        .capacity(st.getCapacity())
+                        .status(st.getStatus())
+                        .build()).toList())
                 .build();
     }
 }

@@ -20,4 +20,5 @@ public class EventResponse {
     private EventStatus status;
     private Long venueId;
     private String venueName;
+    private java.util.List<ShowtimeResponse> showtimes;
 }
