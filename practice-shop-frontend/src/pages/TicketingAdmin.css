@@ -1,90 +1,113 @@
+/* TicketingAdmin.css - Professional Admin Style */
 .ticketing-admin {
-    max-width: 1100px;
-    margin: 2rem auto;
-    padding: 1.5rem;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    color: var(--brand-primary);
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    color: #333;
 }
 
 .ticketing-admin h1 {
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
-    font-weight: 700;
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 30px;
+    color: #111;
+    border-left: 5px solid #000;
+    padding-left: 15px;
 }
 
 .ticketing-admin__grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+    gap: 30px;
 }
 
+/* Form Styling */
 .ticketing-form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
     background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1.25rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .ticketing-form h2 {
-    font-size: 1.2rem;
-    margin: 0 0 0.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--brand-accent);
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #000;
 }
 
 .ticketing-form label {
+    display: block;
     font-weight: 600;
-    font-size: 0.95rem;
+    margin-bottom: 8px;
+    margin-top: 16px;
+    font-size: 14px;
+    color: #444;
+}
+
+.ticketing-form label:first-of-type {
+    margin-top: 0;
 }
 
 .ticketing-form input,
 .ticketing-form textarea,
 .ticketing-form select {
-    padding: 0.65rem 0.8rem;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 1rem;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    box-sizing: border-box; /* Important for width: 100% */
+}
+
+.ticketing-form input:focus,
+.ticketing-form textarea:focus,
+.ticketing-form select:focus {
+    border-color: #000;
+    outline: none;
 }
 
 .ticketing-form textarea {
-    min-height: 90px;
+    min-height: 100px;
+    resize: vertical;
 }
 
-.ticketing-form button {
-    padding: 0.8rem;
-    background: var(--brand-accent);
+.ticketing-form button[type="submit"] {
+    display: block;
+    width: 100%;
+    margin-top: 30px;
+    padding: 14px;
+    background: #000;
     color: #fff;
     border: none;
-    border-radius: 8px;
-    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
     font-weight: 700;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
-.ticketing-form button:hover {
-    box-shadow: 0 6px 14px rgba(249, 115, 22, 0.35);
-    transform: translateY(-1px);
+.ticketing-form button[type="submit"]:hover {
+    background: #333;
 }
 
+/* List Styling */
 .ticketing-list {
-    background: #f9fafb;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1.25rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 30px;
 }
 
 .ticketing-list h2 {
-    font-size: 1.2rem;
-    margin: 0 0 0.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--brand-accent);
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #000;
 }
 
 .ticketing-list ul {
@@ -94,55 +117,70 @@
 }
 
 .ticketing-list li {
-    padding: 0.6rem 0;
-    border-bottom: 1px solid var(--border);
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 16px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    font-size: 14px;
 }
 
-.facility-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.4rem;
+.ticketing-list li strong {
+    font-size: 16px;
+    display: block;
+    margin-bottom: 4px;
 }
 
-.facility-check {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-weight: 500;
-}
+/* Status Colors */
+.ticketing-success { color: #16a34a; font-weight: 600; margin-top: 10px; text-align: center; }
+.ticketing-error { color: #dc2626; font-weight: 600; margin-top: 10px; text-align: center; }
 
-.map-preview {
-    margin-top: 0.5rem;
-    height: 260px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.venue-thumb {
-  margin-top: 0.5rem;
-  max-width: 240px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-}
-
-.seat-batch-grid {
-  display: grid;
-  gap: 0.6rem;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  margin-top: 0.5rem;
-}
-
-.ticketing-success {
-    color: #16a34a;
-}
-
-.ticketing-error {
-    color: #dc2626;
-}
-
+/* Responsive */
 @media (max-width: 900px) {
     .ticketing-admin__grid {
         grid-template-columns: 1fr;
     }
 }
+
+/* Button & Table Polish */
+.btn-primary {
+    background: #000;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 14px;
+}
+.btn-primary:hover {
+    background: #333;
+}
+
+.btn-secondary {
+    background: #fff;
+    color: #333;
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+}
+.btn-secondary:hover {
+    background: #f5f5f5;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-block;
+}
+.status-badge.ON_SALE { background: #dcfce7; color: #166534; }
+.status-badge.DRAFT { background: #f3f4f6; color: #4b5563; }
+.status-badge.COMPLETED { background: #e5e7eb; color: #374151; }
+.status-badge.CANCELED { background: #fee2e2; color: #991b1b; }
+

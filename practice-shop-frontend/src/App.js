@@ -26,16 +26,20 @@ import ShowtimeAdminPage from './pages/ShowtimeAdminPage';
 import SeatAdminPage from './pages/SeatAdminPage';
 import EventWizardPage from './pages/EventWizardPage';
 import SeatMapperPage from './pages/SeatMapperPage';
+import AdminLayout from './components/AdminLayout';
 
 /**
  * 애플리케이션의 최상위 컴포넌트입니다.
  * 전체 레이아웃과 페이지 라우팅을 설정합니다.
  * @returns {JSX.Element} App 컴포넌트
  */
+
+
 function App() {
   return (
-    <Layout>
-      <Routes>
+    <Routes>
+      {/* Consumer Layout Routes */}
+      <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
@@ -51,18 +55,22 @@ function App() {
         <Route path="/orders/:orderId" element={<OrderDetailPage />} />
         <Route path="/payments/toss/success" element={<TossSuccessPage />} />
         <Route path="/payments/toss/fail" element={<TossFailPage />} />
-        <Route path="/admin/venues" element={<VenueAdminPage />} />
-        <Route path="/admin/events" element={<EventAdminPage />} />
-        <Route path="/admin/showtimes" element={<ShowtimeAdminPage />} />
-        <Route path="/admin/seats" element={<SeatAdminPage />} />
-        <Route path="/admin/wizard" element={<EventWizardPage />} />
-        <Route path="/admin/seat-mapper" element={<SeatMapperPage />} />
         <Route path="/verify-email" element={<EmailVerificationPage />} />
         <Route path="/resend-verification" element={<ResendVerificationPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-      </Routes>
-    </Layout>
+      </Route>
+
+      {/* Admin Layout Routes */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route path="venues" element={<VenueAdminPage />} />
+        <Route path="events" element={<EventAdminPage />} />
+        <Route path="showtimes" element={<ShowtimeAdminPage />} />
+        <Route path="seats" element={<SeatAdminPage />} />
+        <Route path="wizard" element={<EventWizardPage />} />
+        <Route path="seat-mapper" element={<SeatMapperPage />} />
+      </Route>
+    </Routes>
   );
 }
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import VenueService from '../services/venue.service';
-import SeatService from '../services/seat.service';
 import './TicketingAdmin.css';
 
 const initialForm = {
@@ -29,19 +28,10 @@ const VenueAdminPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [message, setMessage] = useState('');
-    const [seatBatch, setSeatBatch] = useState({
-        sectionName: '',
-        rowLabel: '',
-        seatFrom: 1,
-        seatTo: 10,
-        seatType: 'VIP',
-        basePrice: '',
-        status: 'AVAILABLE',
-    });
-    const [seatPreview, setSeatPreview] = useState([]);
     const mapContainerRef = useRef(null);
     const mapRef = useRef(null);
     const [mapError, setMapError] = useState(null);
+    const [viewMode, setViewMode] = useState('LIST'); // 'LIST' or 'FORM'
 
     const loadVenues = () => {
         setLoading(true);
@@ -129,54 +119,27 @@ const VenueAdminPage = () => {
 
         VenueService.createVenue(payload)
             .then((res) => {
-                const newVenueId = res.data?.venueId || res.data?.id;
                 setMessage('공연장을 등록했습니다.');
                 setForm(initialForm);
-                // 방금 등록한 공연장으로 좌석 범위 생성
-                if (newVenueId && seatPreview.length > 0) {
-                    Promise.all(seatPreview.map((s) =>
-                        SeatService.createSeat({ ...s, venueId: newVenueId })
-                    )).catch(() => {});
-                }
-                setSeatPreview([]);
                 loadVenues();
+                setTimeout(() => {
+                    setViewMode('LIST');
+                    setMessage('');
+                }, 1500);
             })
             .catch((err) => {
                 setError(err.response?.data?.message || err.message || '등록에 실패했습니다.');
             });
     };
 
-    const handleSeatPreview = () => {
-        const start = Number(seatBatch.seatFrom);
-        const end = Number(seatBatch.seatTo);
-        if (!form.name) {
-            setError('공연장 이름 등 기본 정보를 먼저 입력하세요.');
-            return;
-        }
-        if (!start || !end || end < start) {
-            setError('좌석 번호 범위를 올바르게 입력하세요.');
-            return;
-        }
-        const rows = [];
-        for (let num = start; num <= end; num += 1) {
-            rows.push({
-                sectionName: seatBatch.sectionName || 'MAIN',
-                rowLabel: seatBatch.rowLabel || 'A',
-                seatNumber: num,
-                seatType: seatBatch.seatType,
-                basePrice: seatBatch.basePrice ? Number(seatBatch.basePrice) : null,
-                status: seatBatch.status,
-            });
-        }
-        setSeatPreview(rows);
-        setMessage(`좌석 미리보기 ${rows.length}개 생성 (공연장 저장 시 함께 생성)`);
-        setError(null);
-    };
+    if (viewMode === 'FORM') {
+        return (
+            <div className="ticketing-admin">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h1>공연장 등록</h1>
+                    <button className="btn-secondary" onClick={() => setViewMode('LIST')}>목록으로 돌아가기</button>
+                </div>
 
-    return (
-        <div className="ticketing-admin">
-            <h1>공연장 관리</h1>
-            <div className="ticketing-admin__grid">
                 <form className="ticketing-form" onSubmit={handleSubmit}>
                     <h2>공연장 기본 정보</h2>
                     <label>이름
@@ -250,77 +213,42 @@ const VenueAdminPage = () => {
                     {error && <p className="ticketing-error">{error}</p>}
                     <div className="map-preview" ref={mapContainerRef} aria-label="공연장 위치 미리보기" />
                     {mapError && <p className="ticketing-error">{mapError}</p>}
-
-                    <h2>좌석 범위 생성 (간소화)</h2>
-                    <div className="seat-batch-grid">
-                        <label>구역
-                            <input value={seatBatch.sectionName} onChange={(e) => setSeatBatch({ ...seatBatch, sectionName: e.target.value })} placeholder="예: VIP존" required />
-                        </label>
-                        <label>열
-                            <input value={seatBatch.rowLabel} onChange={(e) => setSeatBatch({ ...seatBatch, rowLabel: e.target.value })} placeholder="예: A" required />
-                        </label>
-                        <label>시작 번호
-                            <input type="number" value={seatBatch.seatFrom} onChange={(e) => setSeatBatch({ ...seatBatch, seatFrom: e.target.value })} required />
-                        </label>
-                        <label>끝 번호
-                            <input type="number" value={seatBatch.seatTo} onChange={(e) => setSeatBatch({ ...seatBatch, seatTo: e.target.value })} required />
-                        </label>
-                        <label>좌석 유형
-                            <select value={seatBatch.seatType} onChange={(e) => setSeatBatch({ ...seatBatch, seatType: e.target.value })}>
-                                <option value="VIP">VIP</option>
-                                <option value="R">R</option>
-                                <option value="S">S</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
-                                <option value="ETC">기타</option>
-                            </select>
-                        </label>
-                        <label>기본 가격
-                            <input type="number" value={seatBatch.basePrice} onChange={(e) => setSeatBatch({ ...seatBatch, basePrice: e.target.value })} required />
-                        </label>
-                        <label>상태
-                            <select value={seatBatch.status} onChange={(e) => setSeatBatch({ ...seatBatch, status: e.target.value })}>
-                                <option value="AVAILABLE">선택 가능</option>
-                                <option value="HOLD">홀드</option>
-                                <option value="RESERVED">예약됨</option>
-                                <option value="SOLD">판매됨</option>
-                                <option value="DISABLED">비활성</option>
-                            </select>
-                        </label>
-                    </div>
-                    <button type="button" className="btn btn-outline-secondary" onClick={handleSeatPreview}>좌석 범위 미리보기</button>
-                    {seatPreview.length > 0 && (
-                        <div className="wizard-list">
-                            <h4>좌석 미리보기 ({seatPreview.length}개) - 공연장 저장 시 생성</h4>
-                            <ul>
-                                {seatPreview.slice(0, 12).map((s, idx) => (
-                                    <li key={`${s.sectionName}-${s.rowLabel}-${s.seatNumber}-${idx}`}>
-                                        [{s.sectionName}] {s.rowLabel}{s.seatNumber} ({s.seatType}) - {s.basePrice ? `${s.basePrice.toLocaleString()}원` : '가격없음'}
-                                    </li>
-                                ))}
-                                {seatPreview.length > 12 && <li>...외 {seatPreview.length - 12}개</li>}
-                            </ul>
-                        </div>
-                    )}
                 </form>
+            </div>
+        );
+    }
 
-                <div className="ticketing-list">
-                    <h2>공연장 목록</h2>
-                    {loading ? (
-                        <p>불러오는 중...</p>
-                    ) : (
-                        <ul>
+    return (
+        <div className="ticketing-admin">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h1>공연장 관리</h1>
+                <button className="btn-primary" onClick={() => setViewMode('FORM')}>+ 신규 공연장 등록</button>
+            </div>
+            
+            <div className="ticketing-list">
+                <h2>공연장 목록</h2>
+                {loading ? (
+                    <p>불러오는 중...</p>
+                ) : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+                        <thead>
+                            <tr style={{ background: '#f5f5f5', borderBottom: '2px solid #333' }}>
+                                <th style={{ padding: '12px', textAlign: 'left' }}>이름</th>
+                                <th style={{ padding: '12px', textAlign: 'left' }}>주소</th>
+                                <th style={{ padding: '12px', textAlign: 'left' }}>도시</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             {venues.map((v) => (
-                                <li key={v.venueId}>
-                                    <strong>{v.name}</strong>
-                                    <div>{v.addressLine1}</div>
-                                    <div>{v.city} {v.state} {v.postalCode}</div>
-                                </li>
+                                <tr key={v.venueId} style={{ borderBottom: '1px solid #eee' }}>
+                                    <td style={{ padding: '12px', fontWeight: 'bold' }}>{v.name}</td>
+                                    <td style={{ padding: '12px' }}>{v.addressLine1}</td>
+                                    <td style={{ padding: '12px' }}>{v.city}</td>
+                                </tr>
                             ))}
-                        </ul>
-                    )}
-                </div>
+                        </tbody>
+                    </table>
+                )}
             </div>
         </div>
     );

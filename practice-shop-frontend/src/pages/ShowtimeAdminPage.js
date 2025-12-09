@@ -31,6 +31,7 @@ const ShowtimeAdminPage = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState(null);
+    const [viewMode, setViewMode] = useState('LIST'); // 'LIST' or 'FORM'
 
     useEffect(() => {
         EventService.listEvents().then((res) => setEvents(res.data || []));
@@ -71,16 +72,24 @@ const ShowtimeAdminPage = () => {
                 setMessage('회차를 등록했습니다.');
                 setForm(initialForm);
                 loadShowtimes(payload.eventId);
+                setTimeout(() => {
+                    setViewMode('LIST');
+                    setMessage('');
+                }, 1500);
             })
             .catch((err) => setError(err.response?.data?.message || err.message || '등록 실패'));
     };
 
-    return (
-        <div className="ticketing-admin">
-            <h1>회차 관리</h1>
-            <div className="ticketing-admin__grid">
+    if (viewMode === 'FORM') {
+        return (
+            <div className="ticketing-admin">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h1>회차 등록</h1>
+                    <button className="btn-secondary" onClick={() => setViewMode('LIST')}>목록으로 돌아가기</button>
+                </div>
+
                 <form className="ticketing-form" onSubmit={handleSubmit}>
-                    <h2>회차 등록</h2>
+                    <h2>기본 정보</h2>
                     <label>공연</label>
                     <select name="eventId" value={form.eventId} onChange={handleChange} required>
                         <option value="">선택</option>
@@ -123,20 +132,54 @@ const ShowtimeAdminPage = () => {
                     {message && <p className="ticketing-success">{message}</p>}
                     {error && <p className="ticketing-error">{error}</p>}
                 </form>
+            </div>
+        );
+    }
 
-                <div className="ticketing-list">
-                    <h2>회차 목록</h2>
-                    {loading ? <p>불러오는 중...</p> : (
-                        <ul>
-                            {showtimes.map((st) => (
-                                <li key={st.showtimeId}>
-                                    <strong>{st.eventTitle}</strong> @ {st.venueName}<br />
-                                    {st.startDateTime?.replace('T', ' ')} ({st.status})
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+    return (
+        <div className="ticketing-admin">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h1>회차 관리</h1>
+                <button className="btn-primary" onClick={() => setViewMode('FORM')}>+ 신규 회차 등록</button>
+            </div>
+            
+            <div className="ticketing-list">
+                <div style={{ marginBottom: '20px', padding: '15px', background: '#f5f5f5', borderRadius: '4px' }}>
+                    <label style={{ marginRight: '10px', fontWeight: 'bold' }}>공연 선택하여 조회:</label>
+                    <select onChange={(e) => loadShowtimes(e.target.value)} style={{ padding: '5px' }}>
+                        <option value="">-- 공연 선택 --</option>
+                        {events.map((ev) => (
+                            <option key={ev.eventId} value={ev.eventId}>{ev.title}</option>
+                        ))}
+                    </select>
                 </div>
+
+                <h2>회차 목록</h2>
+                {loading ? <p>불러오는 중...</p> : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+                        <thead>
+                            <tr style={{ background: '#f5f5f5', borderBottom: '2px solid #333' }}>
+                                <th style={{ padding: '12px', textAlign: 'left' }}>상태</th>
+                                <th style={{ padding: '12px', textAlign: 'left' }}>공연명</th>
+                                <th style={{ padding: '12px', textAlign: 'left' }}>공연장</th>
+                                <th style={{ padding: '12px', textAlign: 'left' }}>일시</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {showtimes.length === 0 && <tr><td colSpan="4" style={{ padding: '20px', textAlign: 'center', color: '#888' }}>조회할 공연을 선택해주세요.</td></tr>}
+                            {showtimes.map((st) => (
+                                <tr key={st.showtimeId} style={{ borderBottom: '1px solid #eee' }}>
+                                    <td style={{ padding: '12px' }}>
+                                        <span className={`status-badge ${st.status}`}>{st.status}</span>
+                                    </td>
+                                    <td style={{ padding: '12px', fontWeight: 'bold' }}>{st.eventTitle}</td>
+                                    <td style={{ padding: '12px' }}>{st.venueName}</td>
+                                    <td style={{ padding: '12px' }}>{st.startDateTime?.replace('T', ' ')}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
             </div>
         </div>
     );

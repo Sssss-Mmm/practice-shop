@@ -1,81 +1,91 @@
 .app-header {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-}
-
-.ticket-brand {
-    font-weight: 800;
-    letter-spacing: 0.5px;
+    background-color: #fff;
+    border-bottom: 2px solid #000;
 }
 
 .header-topbar {
-    background: #f8fafc;
-    padding: 0.35rem 0;
-    font-size: 0.9rem;
-    border-bottom: 1px solid var(--border);
+    background: #f4f4f4;
+    padding: 8px 0;
+    font-size: 12px;
+    border-bottom: 1px solid #ddd;
 }
 
 .toplink, .toplink-btn {
-    color: var(--muted);
+    color: #666;
     text-decoration: none;
-    border: none;
     background: none;
-    padding: 0;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
 }
 
 .toplink:hover, .toplink-btn:hover {
-    color: var(--brand-accent);
-}
-
-.main-nav {
-    border-bottom: 1px solid var(--border);
-}
-
-.main-tabs .tab-link {
-    border: none;
-    background: none;
-    font-weight: 700;
-    font-size: 1.05rem;
-    color: var(--brand-primary);
-    padding: 0.6rem 0.9rem;
-    cursor: pointer;
-}
-
-.main-tabs .tab-link:hover,
-.main-tabs .tab-link.active {
-    color: var(--brand-accent);
+    color: #000;
     text-decoration: underline;
 }
 
+.main-nav {
+    padding: 20px 0;
+}
+
+.ticket-brand {
+    font-size: 28px;
+    font-weight: 900;
+    color: #000;
+    margin-right: 40px;
+    letter-spacing: -1px;
+}
+
 .search-bar {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    flex-grow: 1;
+    max-width: 500px;
+    position: relative;
+    margin: 0 40px;
 }
 
 .search-bar input {
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 0.35rem 0.75rem;
-    min-width: 220px;
+    width: 100%;
+    border: 2px solid #000;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 16px;
+    outline: none;
 }
 
 .search-bar button {
-    border: none;
-    background: var(--brand-accent);
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #000;
     color: #fff;
-    border-radius: 18px;
-    padding: 0.35rem 0.9rem;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.main-tabs {
+    display: flex;
+    gap: 20px;
+}
+
+.tab-link {
+    font-size: 18px;
+    font-weight: 700;
+    color: #000;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.tab-link:hover {
+    color: #FF3434;
+}
+
+.nav-link {
+    color: #000 !important;
     font-weight: 600;
-    cursor: pointer;
-}
-
-.navbar .badge {
-    font-size: 0.75rem;
-    vertical-align: middle;
-}
-
-.dropdown-menu .dropdown-item:hover,
-.dropdown-menu .dropdown-item:focus {
-    background-color: rgba(249, 115, 22, 0.1);
-    color: var(--brand-primary);
+    font-size: 15px;
 }

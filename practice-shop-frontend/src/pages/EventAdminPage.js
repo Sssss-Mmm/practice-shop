@@ -14,6 +14,8 @@ const initialForm = {
     posterImageUrl: '',
     venueId: '',
     status: 'DRAFT',
+    runningTime: '', // [NEW] Running Time
+    casting: '',     // [NEW] Casting (Text or JSON)
 };
 
 const eventStatuses = [
@@ -28,8 +30,9 @@ const EventAdminPage = () => {
     const [events, setEvents] = useState([]);
     const [form, setForm] = useState(initialForm);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
     const [message, setMessage] = useState('');
+    const [error, setError] = useState(null);
+    const [viewMode, setViewMode] = useState('LIST'); // 'LIST' or 'FORM'
 
     const loadVenues = () => {
         VenueService.listVenues().then((res) => setVenues(res.data || []));
@@ -37,7 +40,9 @@ const EventAdminPage = () => {
 
     const loadEvents = () => {
         setLoading(true);
-        EventService.listEvents().then((res) => setEvents(res.data || [])).finally(() => setLoading(false));
+        EventService.listEvents()
+            .then((res) => setEvents(res.data || []))
+            .finally(() => setLoading(false));
     };
 
     useEffect(() => {
@@ -65,16 +70,24 @@ const EventAdminPage = () => {
                 setMessage('공연을 등록했습니다.');
                 setForm(initialForm);
                 loadEvents();
+                setTimeout(() => {
+                   setViewMode('LIST');
+                   setMessage('');
+                }, 1500);
             })
             .catch((err) => setError(err.response?.data?.message || err.message || '등록 실패'));
     };
 
-    return (
-        <div className="ticketing-admin">
-            <h1>공연 관리</h1>
-            <div className="ticketing-admin__grid">
+    if (viewMode === 'FORM') {
+        return (
+            <div className="ticketing-admin">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h1>공연 등록</h1>
+                    <button className="btn-secondary" onClick={() => setViewMode('LIST')}>목록으로 돌아가기</button>
+                </div>
+                
                 <form className="ticketing-form" onSubmit={handleSubmit}>
-                    <h2>공연 등록</h2>
+                    <h2>기본 정보</h2>
                     <label>제목</label>
                     <input name="title" value={form.title} onChange={handleChange} required />
 
@@ -95,6 +108,12 @@ const EventAdminPage = () => {
 
                     <label>판매 종료일</label>
                     <input type="date" name="salesEndDate" value={form.salesEndDate} onChange={handleChange} />
+
+                    <label>관람 시간 (예: 120분)</label>
+                    <input name="runningTime" value={form.runningTime} onChange={handleChange} placeholder="ex) 120분" />
+
+                    <label>출연진 (예: 홍길동, 김철수)</label>
+                    <input name="casting" value={form.casting} onChange={handleChange} placeholder="쉼표로 구분하여 입력" />
 
                     <label>포스터 URL</label>
                     <input name="posterImageUrl" value={form.posterImageUrl} onChange={handleChange} />
@@ -118,20 +137,42 @@ const EventAdminPage = () => {
                     {message && <p className="ticketing-success">{message}</p>}
                     {error && <p className="ticketing-error">{error}</p>}
                 </form>
+            </div>
+        );
+    }
 
-                <div className="ticketing-list">
-                    <h2>공연 목록</h2>
-                    {loading ? <p>불러오는 중...</p> : (
-                        <ul>
+    return (
+        <div className="ticketing-admin">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h1>공연 관리</h1>
+                <button className="btn-primary" onClick={() => setViewMode('FORM')}>+ 신규 공연 등록</button>
+            </div>
+            
+            <div className="ticketing-list">
+                {loading ? <p>불러오는 중...</p> : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+                        <thead>
+                            <tr style={{ background: '#f5f5f5', borderBottom: '2px solid #333' }}>
+                                <th style={{ padding: '12px', textAlign: 'left' }}>상태</th>
+                                <th style={{ padding: '12px', textAlign: 'left' }}>제목</th>
+                                <th style={{ padding: '12px', textAlign: 'left' }}>공연장</th>
+                                <th style={{ padding: '12px', textAlign: 'left' }}>카테고리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             {events.map((ev) => (
-                                <li key={ev.eventId}>
-                                    <strong>{ev.title}</strong> / {ev.status}
-                                    <div>{ev.venueName}</div>
-                                </li>
+                                <tr key={ev.eventId} style={{ borderBottom: '1px solid #eee' }}>
+                                    <td style={{ padding: '12px' }}>
+                                        <span className={`status-badge ${ev.status}`}>{ev.status}</span>
+                                    </td>
+                                    <td style={{ padding: '12px', fontWeight: 'bold' }}>{ev.title}</td>
+                                    <td style={{ padding: '12px' }}>{ev.venueName}</td>
+                                    <td style={{ padding: '12px' }}>{ev.category}</td>
+                                </tr>
                             ))}
-                        </ul>
-                    )}
-                </div>
+                        </tbody>
+                    </table>
+                )}
             </div>
         </div>
     );
