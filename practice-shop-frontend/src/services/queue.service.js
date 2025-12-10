@@ -5,7 +5,7 @@ const API_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8084/api
 
 class QueueService {
     enterQueue(eventId, userId) {
-        return axios.post(`${API_URL}/queue/events/${eventId}/enter`, null, {
+        return axios.post(`${API_URL}/queue/enter/${eventId}`, null, {
             params: { userId },
             headers: authService.authHeader()
         });
@@ -13,8 +13,8 @@ class QueueService {
 
     getQueueStatus(token) {
         return axios.get(`${API_URL}/queue/status`, {
+            params: { token },
             headers: { 
-                'Queue-Token': token,
                 ...authService.authHeader()
             }
         });

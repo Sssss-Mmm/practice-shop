@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import EventService from '../services/event.service';
+import AuthService from '../services/auth.service';
 import './EventDetailPage.css';
 import CalendarWidget from '../components/CalendarWidget';
 
 const EventDetailPage = () => {
     const { eventId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [event, setEvent] = useState(null);
     const [error, setError] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null);
@@ -69,11 +71,19 @@ const EventDetailPage = () => {
     };
 
     const handleBooking = () => {
-        if (selectedShowtime) {
-            navigate(`/book/event/${eventId}/showtime/${selectedShowtime.showtimeId}/queue`);
-        } else {
-            alert('먼저 공연 회차를 선택해주세요.');
+        if (!selectedShowtime) {
+            alert("회차를 선택해주세요.");
+            return;
         }
+
+        const user = AuthService.getCurrentUser();
+        if (!user) {
+            alert("로그인이 필요한 서비스입니다.");
+            navigate('/login', { state: { from: location } });
+            return;
+        }
+
+        navigate(`/book/event/${event.eventId}/showtime/${selectedShowtime.showtimeId}/queue`);
     };
 
     const loadKakao = () => {

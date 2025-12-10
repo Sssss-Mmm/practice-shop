@@ -42,7 +42,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Queue-Token", "queue-token"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -75,6 +75,7 @@ public class SecurityConfig {
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll() // 상품 조회는 모두 허용
                 .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll() // 공연 조회는 모두 허용
+                .requestMatchers("/api/queue/**").permitAll() // 대기열 진입/조회 허용 (익명/로그인 모두)
                 .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자 권한 필요
                 .anyRequest().authenticated()
             )

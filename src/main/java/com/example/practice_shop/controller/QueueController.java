@@ -27,9 +27,9 @@ public class QueueController {
 
     @PostMapping("/enter/{eventId}")
     @Operation(summary = "대기열 진입", description = "대기열 토큰을 발급하고 현재 순번을 반환합니다.")
-    public ResponseEntity<QueueEnterResponse> enter(@PathVariable Long eventId, Authentication authentication) {
-        String userId = authentication != null ? authentication.getName() : null;
-        return ResponseEntity.ok(queueService.enter(eventId, userId));
+    public ResponseEntity<QueueEnterResponse> enter(@PathVariable Long eventId, @RequestParam(required = false) String userId, Authentication authentication) {
+        String finalUserId = authentication != null ? authentication.getName() : userId;
+        return ResponseEntity.ok(queueService.enter(eventId, finalUserId));
     }
 
     @GetMapping("/status")

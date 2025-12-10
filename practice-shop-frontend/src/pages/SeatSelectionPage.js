@@ -20,7 +20,7 @@ const SeatSelectionPage = () => {
             .then(res => {
                 setShowtime(res.data);
                 // Fetch real seats
-                return SeatService.listByVenue(res.data.venue.venueId);
+                return SeatService.listByVenue(res.data.venueId);
             })
             .then(res => {
                 // In production, you would fetch the initial status from an API (e.g. GET /seats/status)
@@ -28,6 +28,7 @@ const SeatSelectionPage = () => {
                 setSeats(res.data.map(s => ({...s, status: s.status || 'AVAILABLE'})));
             })
             .catch(err => {
+                console.error("Failed to load seat info:", err);
                 setError(err.response?.data?.message || '좌석 정보를 불러오는 데 실패했습니다.');
             });
     }, [showtimeId]);

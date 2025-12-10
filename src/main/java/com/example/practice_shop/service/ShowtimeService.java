@@ -21,6 +21,8 @@ public class ShowtimeService {
     private final ShowtimeRepository showtimeRepository;
     private final EventRepository eventRepository;
     private final VenueRepository venueRepository;
+    private final com.example.practice_shop.repository.SeatRepository seatRepository;
+    private final com.example.practice_shop.repository.SeatInventoryRepository seatInventoryRepository;
 
     /**
      * 새 회차 생성
@@ -47,7 +49,22 @@ public class ShowtimeService {
                 .status(status)
                 .build();
 
-        return toResponse(showtimeRepository.save(showtime));
+        Showtime savedShowtime = showtimeRepository.save(showtime);
+
+        // 좌석 재고 생성
+        List<com.example.practice_shop.entity.Seat> seats = seatRepository.findByVenue(venue);
+        List<com.example.practice_shop.entity.SeatInventory> inventories = seats.stream()
+                .map(seat -> com.example.practice_shop.entity.SeatInventory.builder()
+                        .showtime(savedShowtime)
+                        .seat(seat)
+                        .price(seat.getBasePrice())
+                        .status(com.example.practice_shop.constant.SeatStatus.AVAILABLE)
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+        
+        seatInventoryRepository.saveAll(inventories);
+
+        return toResponse(savedShowtime);
     }
     /**
      * 회차 조회

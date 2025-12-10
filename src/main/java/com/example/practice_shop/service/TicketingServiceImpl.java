@@ -52,7 +52,7 @@ public class TicketingServiceImpl implements TicketingService {
         Showtime showtime = showtimeRepository.findById(request.getShowtimeId())
                 .orElseThrow(() -> new CustomException(ErrorCode.SHOWTIME_NOT_FOUND));
 
-        List<SeatInventory> selectedInventories = seatInventoryRepository.findAllByIdInAndShowtimeIdWithLock(request.getSeatIds(), showtime.getId());
+        List<SeatInventory> selectedInventories = seatInventoryRepository.findAllBySeatIdInAndShowtimeIdWithLock(request.getSeatIds(), showtime.getId());
 
         if (selectedInventories.size() != request.getSeatIds().size()) {
             throw new CustomException(ErrorCode.SEAT_NOT_FOUND);

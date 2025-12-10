@@ -21,4 +21,8 @@ public interface SeatInventoryRepository extends JpaRepository<SeatInventory, Lo
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select si from SeatInventory si where si.id in :ids and si.showtime.id = :showtimeId")
     List<SeatInventory> findAllByIdInAndShowtimeIdWithLock(List<Long> ids, Long showtimeId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select si from SeatInventory si where si.seat.id in :seatIds and si.showtime.id = :showtimeId")
+    List<SeatInventory> findAllBySeatIdInAndShowtimeIdWithLock(List<Long> seatIds, Long showtimeId);
 }
