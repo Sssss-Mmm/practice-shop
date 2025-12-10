@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import EventService from '../services/event.service';
 import './EventDetailPage.css';
+import CalendarWidget from '../components/CalendarWidget';
 
 const EventDetailPage = () => {
     const { eventId } = useParams();
@@ -213,16 +214,12 @@ const EventDetailPage = () => {
                         
                         <div className="widget-section">
                             <h4>날짜</h4>
-                            <div className="widget-date-list">
-                                {dates.map(d => (
-                                    <button 
-                                        key={d} 
-                                        className={`date-btn ${selectedDate === d ? 'active' : ''}`}
-                                        onClick={() => setSelectedDate(d)}
-                                    >
-                                        {d.slice(5)}
-                                    </button>
-                                ))}
+                            <div className="widget-calendar-area">
+                                <CalendarWidget 
+                                    availableDates={dates} 
+                                    selectedDate={selectedDate} 
+                                    onDateSelect={setSelectedDate} 
+                                />
                             </div>
                         </div>
 

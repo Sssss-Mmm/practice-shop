@@ -3,6 +3,7 @@ package com.example.practice_shop.service;
 import com.example.practice_shop.constant.EventStatus;
 import com.example.practice_shop.dtos.ticketing.EventRequest;
 import com.example.practice_shop.dtos.ticketing.EventResponse;
+import com.example.practice_shop.dtos.ticketing.ShowtimeResponse;
 import com.example.practice_shop.entity.Event;
 import com.example.practice_shop.entity.Venue;
 import com.example.practice_shop.repository.EventRepository;
