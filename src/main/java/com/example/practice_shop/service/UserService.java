@@ -66,7 +66,6 @@ public class UserService {
                 .status(Status.INACTIVE)
                 .build();
 
-        applyEmailVerificationWindow(user);
         userRepository.save(user);
 
         sendVerificationEmail(user);

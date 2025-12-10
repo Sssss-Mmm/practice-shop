@@ -70,7 +70,7 @@ const EventDetailPage = () => {
 
     const handleBooking = () => {
         if (selectedShowtime) {
-            navigate(`/book/event/${eventId}/showtime/${selectedShowtime.id}/queue`);
+            navigate(`/book/event/${eventId}/showtime/${selectedShowtime.showtimeId}/queue`);
         } else {
             alert('먼저 공연 회차를 선택해주세요.');
         }
@@ -228,8 +228,8 @@ const EventDetailPage = () => {
                             <div className="widget-time-list">
                                 {selectedDate && groupedByDate[selectedDate]?.map(st => (
                                     <button
-                                        key={st.id}
-                                        className={`time-btn ${selectedShowtime?.id === st.id ? 'active' : ''}`}
+                                        key={st.showtimeId}
+                                        className={`time-btn ${selectedShowtime?.showtimeId === st.showtimeId ? 'active' : ''}`}
                                         onClick={() => handleShowtimeSelect(st)}
                                     >
                                         {st.startDateTime.slice(11, 16)}

@@ -35,6 +35,11 @@ public class QueueWorker {
         });
     }
 
+    /**
+     * 큐 키에서 이벤트 ID를 추출합니다.
+     * @param key
+     * @return
+     */
     private Long extractEventId(String key) {
         // key 형식: queue:{eventId}
         int idx = key.indexOf(":");

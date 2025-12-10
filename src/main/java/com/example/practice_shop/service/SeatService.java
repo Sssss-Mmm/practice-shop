@@ -76,6 +76,13 @@ public class SeatService {
                 .toList();
     }
 
+    /**
+     * 좌석 엔티티를 생성합니다.
+     * @param venue
+     * @param request
+     * @param status
+     * @return
+     */
     private Seat buildSeat(Venue venue, SeatRequest request, SeatStatus status) {
         return Seat.builder()
                 .venue(venue)

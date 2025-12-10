@@ -37,6 +37,12 @@ public class TicketingServiceImpl implements TicketingService {
     private final ReservationRepository reservationRepository;
     private final SeatRealtimeService seatRealtimeService;
 
+    /**
+     * 예약을 생성합니다.
+     * @param email
+     * @param request
+     * @return
+     */
     @Override
     @Transactional
     public ReservationResponse createReservation(String email, SeatSelectionRequest request) {
@@ -93,6 +99,11 @@ public class TicketingServiceImpl implements TicketingService {
         return toResponse(savedReservation);
     }
 
+    /**
+     * 사용자의 예약 목록을 조회합니다.
+     * @param email
+     * @return
+     */
     @Override
     @Transactional(readOnly = true)
     public List<ReservationResponse> getUserReservations(String email) {
@@ -102,6 +113,11 @@ public class TicketingServiceImpl implements TicketingService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 예약을 취소합니다.
+     * @param email
+     * @param reservationId
+     */
     @Override
     @Transactional
     public void cancelReservation(String email, Long reservationId) {
@@ -130,6 +146,11 @@ public class TicketingServiceImpl implements TicketingService {
         seatRealtimeService.broadcastSeatStatuses(reservation.getShowtime().getId(), inventoriesToRelease);
     }
 
+    /**
+     * Reservation 엔티티를 ReservationResponse DTO로 변환합니다.
+     * @param reservation
+     * @return
+     */
     private ReservationResponse toResponse(Reservation reservation) {
         Showtime showtime = reservation.getShowtime();
         List<String> seatDetails = reservation.getReservationSeats().stream()

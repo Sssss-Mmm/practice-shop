@@ -13,6 +13,11 @@ public class SeatRealtimeService {
 
     private final SimpMessagingTemplate messagingTemplate;
 
+    /**
+     * 좌석 상태를 브로드캐스팅합니다.
+     * @param showtimeId
+     * @param inventories
+     */
     public void broadcastSeatStatuses(Long showtimeId, List<SeatInventory> inventories) {
         SeatStatusMessage message = SeatStatusMessage.builder()
                 .showtimeId(showtimeId)
@@ -22,6 +27,10 @@ public class SeatRealtimeService {
         messagingTemplate.convertAndSend(topic(showtimeId), message);
     }
 
+    /**
+     * 좌석 상태를 브로드캐스팅합니다.
+     * @param inventory
+     */
     public void broadcastSeatStatus(SeatInventory inventory) {
         if (inventory == null || inventory.getShowtime() == null) {
             return;
@@ -29,6 +38,11 @@ public class SeatRealtimeService {
         broadcastSeatStatuses(inventory.getShowtime().getId(), List.of(inventory));
     }
 
+    /**
+     * 좌석 상태를 SeatStatusMessage.SeatStatusItem으로 변환합니다.
+     * @param inventory
+     * @return
+     */
     private SeatStatusMessage.SeatStatusItem toSeatStatusItem(SeatInventory inventory) {
         return SeatStatusMessage.SeatStatusItem.builder()
                 .seatInventoryId(inventory.getId())
@@ -41,6 +55,11 @@ public class SeatRealtimeService {
                 .build();
     }
 
+    /**
+     * 좌석 상태를 브로드캐스팅할 토픽을 반환합니다.
+     * @param showtimeId
+     * @return
+     */
     private String topic(Long showtimeId) {
         return "/topic/seat/" + showtimeId;
     }
