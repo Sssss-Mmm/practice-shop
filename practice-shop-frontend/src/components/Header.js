@@ -41,6 +41,7 @@ const Header = () => {
                 <div className="container d-flex justify-content-end gap-3">
                     {currentUser ? (
                         <>
+                            <Link to="/my-tickets" className="toplink">예매확인</Link>
                             <Link to="/orders" className="toplink">주문내역</Link>
                             <button className="toplink-btn" onClick={handleLogout}>로그아웃</button>
                         </>

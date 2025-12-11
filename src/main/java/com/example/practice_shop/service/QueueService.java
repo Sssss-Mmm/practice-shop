@@ -25,7 +25,7 @@ public class QueueService {
     private static final String READY_KEY_PREFIX = "queue:ready:"; // 허용 토큰 모음
     private static final String TOKEN_KEY_PREFIX = "queue:token:"; // 토큰 메타 정보
     private static final Duration READY_TTL = Duration.ofMinutes(5); // 허용 토큰 유지 시간
-    private static final int DEFAULT_ALLOW_PER_TICK = 10; // 허용 토큰 수
+    private static final int DEFAULT_ALLOW_PER_TICK = 300; // 허용 토큰 수
 
     private final StringRedisTemplate redisTemplate;
 

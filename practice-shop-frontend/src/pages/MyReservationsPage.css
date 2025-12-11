@@ -1,0 +1,17 @@
+.reservation-card {
+    transition: transform 0.2s;
+}
+
+.reservation-card:hover {
+    transform: translateY(-5px);
+}
+
+.reservation-card .badge {
+    font-size: 0.9em;
+    padding: 0.5em 0.8em;
+}
+
+.reservation-card h5 {
+    font-weight: bold;
+    color: #333;
+}

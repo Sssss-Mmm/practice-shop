@@ -158,7 +158,7 @@ const EventDetailPage = () => {
                     </div>
                     <table className="info-table">
                         <tbody>
-                            <tr><th>장소</th><td>{event.venue?.name || '-'}</td></tr>
+                            <tr><th>장소</th><td>{event.venueName || '-'}</td></tr>
                             <tr><th>기간</th><td>{formatDate(event.salesStartDate, false)} ~ {formatDate(event.salesEndDate, false)}</td></tr>
                             <tr><th>관람시간</th><td>{event.runningTime || '정보 없음'}</td></tr>
                             <tr><th>관람등급</th><td>{event.ageRestriction || '전체관람가'}</td></tr>
@@ -187,7 +187,7 @@ const EventDetailPage = () => {
                             <div className="detail-info-pane">
                                 <h3>공연 소개</h3>
                                 <p style={{whiteSpace: 'pre-wrap'}}>{event.description || '상세 정보가 없습니다.'}</p>
-                                <img src="/placeholder_detail.jpg" alt="상세이미지 예시" style={{width: '100%', marginTop: '20px', borderRadius: '8px', opacity: 0.5}} />
+                                <img src={event.venue?.seatingChartUrl} alt="상세이미지 예시" style={{width: '100%', marginTop: '20px', borderRadius: '8px', opacity: 0.5}} />
                             </div>
                         )}
                         {activeTab === 'CAST' && (

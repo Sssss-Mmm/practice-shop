@@ -15,6 +15,8 @@ import com.example.practice_shop.repository.ReservationRepository;
 import com.example.practice_shop.repository.SeatInventoryRepository;
 import com.example.practice_shop.repository.ShowtimeRepository;
 import com.example.practice_shop.repository.UserRepository;
+import com.example.practice_shop.repository.PaymentRepository; // Import Added
+import com.example.practice_shop.integration.toss.TossPaymentClient; // Import Added
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,8 @@ public class TicketingServiceImpl implements TicketingService {
     private final SeatInventoryRepository seatInventoryRepository;
     private final ReservationRepository reservationRepository;
     private final SeatRealtimeService seatRealtimeService;
+    private final TossPaymentClient tossPaymentClient;
+    private final PaymentRepository paymentRepository;
 
     /**
      * 예약을 생성합니다.
@@ -128,7 +132,16 @@ public class TicketingServiceImpl implements TicketingService {
             throw new CustomException(ErrorCode.ALREADY_CANCELLED_RESERVATION);
         }
 
-        // TODO: 결제 취소 로직 추가 (Toss Payments API 연동 등)
+        // 결제 완료 상태라면 환불 처리
+        if (reservation.getStatus() == ReservationStatus.PAID && reservation.getPaymentKey() != null) {
+            tossPaymentClient.cancelPayment(reservation.getPaymentKey(), "사용자 요청에 의한 취소");
+            
+            // Payment 엔티티 상태 업데이트 (옵션)
+            paymentRepository.findByReservation(reservation).ifPresent(p -> {
+                 p.setStatus(com.example.practice_shop.constant.PaymentStatus.REFUNDED);
+                 paymentRepository.save(p);
+            });
+        }
 
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservationRepository.save(reservation);
@@ -144,6 +157,47 @@ public class TicketingServiceImpl implements TicketingService {
 
         // WebSocket으로 좌석 상태 브로드캐스트
         seatRealtimeService.broadcastSeatStatuses(reservation.getShowtime().getId(), inventoriesToRelease);
+    }
+
+    /**
+     * 결제 승인 및 예매 확정
+     * @param orderId
+     * @param paymentKey
+     * @param amount
+     */
+    @Override
+    @Transactional
+    public void confirmPayment(String orderId, String paymentKey, Long amount) {
+        Reservation reservation = reservationRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+        
+        if (reservation.getTotalPrice() != amount) {
+             throw new CustomException(ErrorCode.INVALID_PAYMENT_AMOUNT);
+        }
+
+        // 토스 결제 승인 요청
+        com.example.practice_shop.dtos.Payment.TossPaymentConfirmRequest confirmRequest = new com.example.practice_shop.dtos.Payment.TossPaymentConfirmRequest();
+        confirmRequest.setPaymentKey(paymentKey);
+        confirmRequest.setOrderId(orderId);
+        confirmRequest.setAmount(amount);
+        
+        tossPaymentClient.confirmPayment(confirmRequest);
+
+        // 예매 상태 업데이트
+        reservation.setStatus(ReservationStatus.PAID);
+        reservation.setPaymentKey(paymentKey);
+        reservationRepository.save(reservation);
+
+        // Payment 엔티티 생성 및 저장
+        com.example.practice_shop.entity.Payment payment = com.example.practice_shop.entity.Payment.builder()
+                .reservation(reservation)
+                .amount(BigDecimal.valueOf(amount))
+                .status(com.example.practice_shop.constant.PaymentStatus.PAID)
+                .paymentMethod("CARD") // 상세 정보는 응답에서 가져와야 하지만 여기서는 간소화
+                .paymentGateway("TOSS")
+                .paymentKey(paymentKey)
+                .build();
+        paymentRepository.save(payment);
     }
 
     /**

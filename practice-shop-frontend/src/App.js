@@ -26,6 +26,7 @@ import ShowtimeAdminPage from './pages/ShowtimeAdminPage';
 import SeatAdminPage from './pages/SeatAdminPage';
 import EventWizardPage from './pages/EventWizardPage';
 import SeatMapperPage from './pages/SeatMapperPage';
+import MyReservationsPage from './pages/MyReservationsPage';
 import AdminLayout from './components/AdminLayout';
 
 /**
@@ -51,6 +52,7 @@ function App() {
         <Route path="/book/showtime/:showtimeId/seats" element={<SeatSelectionPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/my-tickets" element={<MyReservationsPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/orders/:orderId" element={<OrderDetailPage />} />
         <Route path="/payments/toss/success" element={<TossSuccessPage />} />

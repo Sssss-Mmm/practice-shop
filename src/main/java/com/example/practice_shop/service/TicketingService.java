@@ -9,4 +9,5 @@ public interface TicketingService {
     ReservationResponse createReservation(String email, SeatSelectionRequest request);
     List<ReservationResponse> getUserReservations(String email);
     void cancelReservation(String email, Long reservationId);
+    void confirmPayment(String orderId, String paymentKey, Long amount);
 }

@@ -62,4 +62,6 @@ public class Reservation {
 
     @Column(nullable = false, unique = true)
     private String orderId; // 결제를 위한 고유 주문 ID
+
+    private String paymentKey; // 결제 키 (Toss Payments)
 }

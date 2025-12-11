@@ -25,6 +25,7 @@ public enum ErrorCode {
     SEAT_ALREADY_RESERVED(HttpStatus.CONFLICT, "T003", "이미 예약된 좌석입니다."),
     RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "T004", "예매 정보를 찾을 수 없습니다."),
     ALREADY_CANCELLED_RESERVATION(HttpStatus.BAD_REQUEST, "T005", "이미 취소된 예매입니다."),
+    INVALID_PAYMENT_AMOUNT(HttpStatus.BAD_REQUEST, "T006", "결제 금액이 일치하지 않습니다."),
 
     // Product
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "상품을 찾을 수 없습니다."),

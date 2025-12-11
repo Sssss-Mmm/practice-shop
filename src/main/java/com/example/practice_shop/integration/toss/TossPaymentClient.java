@@ -65,6 +65,31 @@ public class TossPaymentClient {
     }
 
     /**
+     * 토스 결제 취소 요청
+     * @param paymentKey 결제 키
+     * @param cancelReason 취소 사유
+     */
+    public void cancelPayment(String paymentKey, String cancelReason) {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException("토스 시크릿 키가 설정되지 않았습니다.");
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add(HttpHeaders.AUTHORIZATION, buildBasicAuthHeader());
+
+        String url = "https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel";
+        String body = String.format("{\"cancelReason\": \"%s\"}", cancelReason);
+
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        try {
+            restTemplate.postForEntity(url, entity, String.class);
+        } catch (HttpStatusCodeException ex) {
+            throw new IllegalStateException("토스 결제 취소 실패: " + ex.getResponseBodyAsString(), ex);
+        }
+    }
+
+    /**
      * Basic Auth 헤더 생성
      * @return
      */
