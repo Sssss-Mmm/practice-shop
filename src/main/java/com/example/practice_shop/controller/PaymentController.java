@@ -1,8 +1,6 @@
 package com.example.practice_shop.controller;
 
-import com.example.practice_shop.dtos.Order.OrderResponse;
 import com.example.practice_shop.dtos.Payment.TossPaymentConfirmRequest;
-import com.example.practice_shop.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private final OrderService orderService;
     private final com.example.practice_shop.service.TicketingService ticketingService;
 
     /**
@@ -31,13 +28,12 @@ public class PaymentController {
     @Operation(summary = "토스 결제 승인", description = "토스 결제 성공 후 결제 내역을 검증하고 주문을 확정합니다.")
     public ResponseEntity<?> confirmTossPayment(Authentication authentication,
                                                             @Valid @RequestBody TossPaymentConfirmRequest request) {
-        String email = authentication.getName();
         
         if (request.getOrderId().startsWith("tck-")) {
             ticketingService.confirmPayment(request.getOrderId(), request.getPaymentKey(), request.getAmount());
             return ResponseEntity.ok("Payment confirmed for reservation");
         }
         
-        return ResponseEntity.ok(orderService.confirmTossPayment(email, request));
+        return ResponseEntity.badRequest().body("지원하지 않는 주문 유형입니다.");
     }
 }

@@ -1,7 +1,7 @@
 package com.example.practice_shop.entity;
 
 import java.time.LocalDateTime;
-import java.util.List;
+
 
 import com.example.practice_shop.constant.Role;
 import jakarta.persistence.*;
@@ -145,14 +145,7 @@ public class User extends BaseTimeEntity {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Cart cart;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> reviews;
-
-    @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Product> products;
     
     /** 마지막 로그인 시각 */
     public void updateLastLoginAt() {
