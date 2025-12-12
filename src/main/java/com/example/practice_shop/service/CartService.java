@@ -41,6 +41,7 @@ public class CartService {
         User user = getUserByEmail(email);
         Cart cart = cartRepository.findByUser(user).orElseGet(() -> initializeCart(user));
 
+        // 장바구니 항목 리스트 초기화
         List<CartItemResponse> itemResponses = new ArrayList<>();
         long totalPrice = 0;
         int totalItems = 0;

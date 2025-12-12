@@ -44,6 +44,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
+        // 사용자 정보를 기반으로 리디렉션 URL을 결정합니다.
         String targetUrl;
 
         // 사용자 프로필이 완성되었는지 확인
@@ -80,6 +81,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
      * @return 프로필이 완전하면 true, 그렇지 않으면 false
      */
     private boolean isProfileComplete(User user) {
+
+        // 사용자의 프로필 정보를 확인합니다.
         return user.getName() != null && !user.getName().isEmpty() &&
                user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty() &&
                user.getNickname() != null && !user.getNickname().isEmpty() &&

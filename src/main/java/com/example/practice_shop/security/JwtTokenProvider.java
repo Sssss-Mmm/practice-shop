@@ -66,10 +66,14 @@ public class JwtTokenProvider {
      * @return 생성된 JWT 문자열
      */
     private String createToken(String subject, String username, Role role, long validity) {
+        // 토큰 생성
         System.out.println("Role being added to token: " + role);
+        // 현재 시간과 유효 시간 계산
         Date now = new Date();
+        // 토큰 만료 시간 계산
         Date expiry = new Date(now.getTime() + validity);
 
+        // JWT 생성
         return Jwts.builder()
                 .setSubject(subject) // 토큰 주체 설정 (이메일)
                 .claim("username", username) // 사용자 이름 클레임 추가
@@ -87,6 +91,7 @@ public class JwtTokenProvider {
      */
     public boolean validateToken(String token) {
         try {
+            // 토큰 검증
             Jwts.parserBuilder()
                 .setSigningKey(key) // 서명 키로 검증
                 .build()
