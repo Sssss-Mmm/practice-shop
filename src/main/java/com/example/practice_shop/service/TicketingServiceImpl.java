@@ -119,8 +119,13 @@ public class TicketingServiceImpl implements TicketingService {
 
     /**
      * 예약을 취소합니다.
-     * @param email
-     * @param reservationId
+     * <p>
+     * 1. 예약 정보를 조회하고 이미 취소된 상태인지 확인합니다.
+     * 2. 결제가 완료된 예약(PAID)인 경우, Toss Payments API를 호출하여 전액 환불을 진행합니다.
+     * 3. 예약 상태를 CANCELLED로 변경하고, 점유했던 좌석들을 다시 AVAILABLE 상태로 반환합니다.
+     * </p>
+     * @param email 사용자 이메일
+     * @param reservationId 취소할 예약 ID
      */
     @Override
     @Transactional
@@ -134,9 +139,10 @@ public class TicketingServiceImpl implements TicketingService {
 
         // 결제 완료 상태라면 환불 처리
         if (reservation.getStatus() == ReservationStatus.PAID && reservation.getPaymentKey() != null) {
+            // Toss Payments 결제 취소 API 호출
             tossPaymentClient.cancelPayment(reservation.getPaymentKey(), "사용자 요청에 의한 취소");
             
-            // Payment 엔티티 상태 업데이트 (옵션)
+            // Payment 엔티티 상태 업데이트 (옵션: 환불 이력 저장)
             paymentRepository.findByReservation(reservation).ifPresent(p -> {
                  p.setStatus(com.example.practice_shop.constant.PaymentStatus.REFUNDED);
                  paymentRepository.save(p);
@@ -160,10 +166,16 @@ public class TicketingServiceImpl implements TicketingService {
     }
 
     /**
-     * 결제 승인 및 예매 확정
-     * @param orderId
-     * @param paymentKey
-     * @param amount
+     * 결제 승인 및 예매 확정.
+     * <p>
+     * 프론트엔드에서 결제 승인 성공 후 호출됩니다.
+     * 1. 주문 ID로 예약 정보를 조회하고 결제 금액을 검증합니다.
+     * 2. Toss Payments에 최종 승인 요청을 보냅니다.
+     * 3. 예약 상태를 PAID로 변경하고 Payment 엔티티를 생성하여 저장합니다.
+     * </p>
+     * @param orderId 주문 ID
+     * @param paymentKey 결제 키
+     * @param amount 결제 금액
      */
     @Override
     @Transactional

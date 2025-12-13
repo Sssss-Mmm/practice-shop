@@ -10,6 +10,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * 상품 카테고리를 관리하는 엔티티입니다.
+ * Products are grouped by these categories.
+ */
 @Entity
 @Getter
 @Setter
@@ -22,5 +26,8 @@ public class Category extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * 카테고리 이름 (예: Electronics, Books)
+     */
     private String name;
 }

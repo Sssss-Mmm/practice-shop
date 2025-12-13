@@ -25,6 +25,10 @@ import java.util.ArrayList;
 import java.util.List;
 import com.example.practice_shop.constant.ReservationStatus;
 
+/**
+ * 사용자의 예약 정보를 관리하는 엔티티입니다.
+ * A reservation links a user to a specific showtime and seats.
+ */
 @Entity
 @Table(name = "reservations")
 @Getter
@@ -46,13 +50,22 @@ public class Reservation {
     @JoinColumn(name = "showtime_id", nullable = false)
     private Showtime showtime;
 
+    /**
+     * 예약에 포함된 좌석 목록
+     */
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default // Builder 사용 시 기본값 설정
     private List<ReservationSeat> reservationSeats = new ArrayList<>();
 
+    /**
+     * 총 결제 금액
+     */
     @Column(nullable = false)
     private int totalPrice;
 
+    /**
+     * 예약 상태 (PENDING_PAYMENT, PAID, CANCELLED 등)
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReservationStatus status;
@@ -60,8 +73,14 @@ public class Reservation {
     @Column(nullable = false)
     private LocalDateTime reservedAt;
 
+    /**
+     * 결제 처리를 위한 고유 주문 ID (UUID 포함)
+     */
     @Column(nullable = false, unique = true)
     private String orderId; // 결제를 위한 고유 주문 ID
 
+    /**
+     * Toss Payments 결제 키 (결제 성공 시 저장됨)
+     */
     private String paymentKey; // 결제 키 (Toss Payments)
 }
