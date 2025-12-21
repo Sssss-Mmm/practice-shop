@@ -10,18 +10,18 @@
 ### 시스템 아키텍처
 ```mermaid
 graph TD
-    User[Client (Browser)] -->|HTTP/WebSocket| LB[Gateway / Load Balancer]
-    LB -->|API Request| WebServer[Spring Boot Server]
+    User["Client (Browser)"] -->|HTTP/WebSocket| LB["Gateway / Load Balancer"]
+    LB -->|API Request| WebServer["Spring Boot Server"]
     
-    subgraph Service Layer
-        WebServer -->|Auth| Security[Spring Security & JWT]
-        WebServer -->|Logic| Service[Business Logic]
+    subgraph "Service Layer"
+        WebServer -->|Auth| Security["Spring Security & JWT"]
+        WebServer -->|Logic| Service["Business Logic"]
     end
     
-    subgraph Data & Infra
-        Service -->|Data| DB[(PostgreSQL)]
-        Service -->|Queue & Cache| Redis[(Redis)]
-        Service -->|Payment| Toss[Toss Payments API]
+    subgraph "Data & Infra"
+        Service -->|Data| DB[("PostgreSQL")]
+        Service -->|Queue & Cache| Redis[("Redis")]
+        Service -->|Payment| Toss["Toss Payments API"]
     end
 ```
 
@@ -186,6 +186,3 @@ npm install && npm start
 
 ---
 
-## 📚 API 문서
-서버 실행 후 아래 주소에서 Swagger 문서를 확인할 수 있습니다.
-- **URL**: `http://localhost:8084/swagger-ui/index.html`
