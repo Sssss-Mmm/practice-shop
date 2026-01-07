@@ -3,6 +3,7 @@ import { Box } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
+import ChatbotWidget from './ChatbotWidget';
 import './Layout.css';
 
 const Layout = ({ children }) => {
@@ -12,6 +13,7 @@ const Layout = ({ children }) => {
       <Box component="main" sx={{ flexGrow: 1 }}>
         {children || <Outlet />}
       </Box>
+      <ChatbotWidget />
       <Footer />
     </Box>
   );
