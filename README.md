@@ -56,7 +56,10 @@ graph TD
 ### 2. 🚦 대기열 시스템 (Queue System)
 트래픽 폭주로 인한 서버 다운을 방지하기 위해 **Redis 기반의 대기열 시스템**을 도입했습니다.
 - **진입 제어**: API 요청 전 대기열 토큰 발급.
-- **순차 처리**: `Active Queue`와 `Waiting Queue`를 분리하여 처리량 조절.
+- **순차 처리**:
+    - `Active Queue`: 실제 트래픽을 처리하는 큐.
+    - `Waiting Queue`: 대기 중인 유저 큐.
+    - **Queue Worker**: `QueueWorker`가 주기적(2000ms)으로 `Waiting Queue`에서 일정 수량(Default 50)을 `Active Queue`로 승격시킵니다.
 - **Poling**: 클라이언트에서 주기적으로 대기 순번 확인.
 
 ### 3. 예약 및 실시간 좌석 (Ticketing & Realtime Seats)
@@ -70,8 +73,14 @@ graph TD
 - **멱등성**: 중복 결제 방지 로직.
 
 ### 5. 관리자 (Admin)
-- **Batch Processing**: 수천 개의 좌석을 한 번에 생성하는 배치 기능.
-- **CMS**: 공연장(Venue), 공연(Event), 회차(Showtime) 관리.
+- **통합 마법사 (Wizard)**: 공연, 공연장, 회차를 한 번에 등록하는 올인원 페이지.
+- **CMS**:
+    - **공연 관리**: Event CRUD.
+    - **공연장 관리**: Venue CRUD.
+    - **회차 관리**: Showtime CRUD.
+    - **좌석 관리**: 구역(Section) 및 좌석(Seat) 배치 관리.
+    - **좌석 매퍼**: 시각적 좌석 배치 도구.
+- **Batch Processing**: 대량의 좌석 데이터 일괄 생성 지원.
 
 ---
 
@@ -182,6 +191,15 @@ docker-compose up -d --build
 ```bash
 cd practice-shop-frontend
 npm install && npm start
+```
+
+### 4. 대기열 부하 테스트 (Load Testing)
+대기열 시스템의 성능을 검증하기 위한 Python 스크립트가 제공됩니다.
+```bash
+# 가상환경 설정 및 실행 권장
+python3 scripts/load_test_queue.py
+```
+- 다수의 쓰레드를 생성하여 대기열 진입 시나리오를 시뮬레이션합니다.
 ```
 
 ---
