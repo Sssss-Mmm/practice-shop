@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import EventService from '../services/event.service';
 import './HomePage.css';
 import { FaFire, FaTicketAlt, FaChevronRight } from 'react-icons/fa';
@@ -19,16 +19,24 @@ const HomePage = () => {
         { id: 2, title: "2024 야구 개막전", desc: "심장을 울리는 함성, 다시 시작된다!", image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&q=80&w=2070" }
     ];
 
+    const [searchParams] = useSearchParams();
+    const keyword = searchParams.get('q');
+    const category = searchParams.get('category');
+
     useEffect(() => {
         setLoading(true);
-        EventService.listEvents()
+        const params = {};
+        if (keyword) params.keyword = keyword;
+        if (category) params.category = category;
+
+        EventService.listEvents(params)
             .then((response) => {
                 const data = Array.isArray(response.data) ? response.data : response.data?.content;
                 setProducts(data || []);
             })
             .catch(console.error)
             .finally(() => setLoading(false));
-    }, []);
+    }, [keyword, category]);
 
     // Auto rotate banners
     useEffect(() => {

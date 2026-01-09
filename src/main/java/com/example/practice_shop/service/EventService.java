@@ -12,6 +12,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -60,14 +61,20 @@ public class EventService {
         return toResponse(event);
     }
 
+
+
     /**
      * 공연 목록 조회
+     * @param keyword
+     * @param category
+     * @param startDate
+     * @param endDate
      * @param status
      * @return
      */
     @Transactional(readOnly = true)
-    public List<EventResponse> list(EventStatus status) {
-        List<Event> events = (status == null) ? eventRepository.findAll() : eventRepository.findByStatus(status);
+    public List<EventResponse> list(String keyword, String category, LocalDate startDate, LocalDate endDate, EventStatus status) {
+        List<Event> events = eventRepository.searchEvents(keyword, category, startDate, endDate, status);
         return events.stream().map(this::toResponse).toList();
     }
 

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/events")
@@ -35,15 +36,26 @@ public class EventController {
         return ResponseEntity.ok(eventService.create(request));
     }
 
+
+
     /**
      * 공연 목록 조회
+     * @param keyword
+     * @param category
+     * @param startDate
+     * @param endDate
      * @param status
      * @return
      */
     @GetMapping
     @Operation(summary = "공연 목록 조회")
-    public ResponseEntity<List<EventResponse>> list(@RequestParam(required = false) EventStatus status) {
-        return ResponseEntity.ok(eventService.list(status));
+    public ResponseEntity<List<EventResponse>> list(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) EventStatus status) {
+        return ResponseEntity.ok(eventService.list(keyword, category, startDate, endDate, status));
     }
     
     /**
