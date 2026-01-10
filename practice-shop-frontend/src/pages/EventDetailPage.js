@@ -4,6 +4,7 @@ import EventService from '../services/event.service';
 import AuthService from '../services/auth.service';
 import './EventDetailPage.css';
 import CalendarWidget from '../components/CalendarWidget';
+import ReviewSection from '../components/ReviewSection';
 
 const EventDetailPage = () => {
     const { eventId } = useParams();
@@ -211,7 +212,7 @@ const EventDetailPage = () => {
                         )}
                         {activeTab === 'QNA' && (
                             <div className="qna-pane">
-                                <p className="muted">등록된 관람후기가 없습니다.</p>
+                                <ReviewSection eventId={event.eventId || event.id} />
                             </div>
                         )}
                     </div>
