@@ -3,10 +3,13 @@ package com.example.practice_shop.service;
 import com.example.practice_shop.dtos.queue.QueueEnterResponse;
 import com.example.practice_shop.dtos.queue.QueueStatusResponse;
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -95,11 +98,22 @@ public class QueueService {
 
     /**
      * 큐 키 목록을 가져옵니다.
-     * @return
+     * SCAN 명령어를 사용하여 프로덕션 환경에서 블로킹을 방지합니다.
+     * @return 큐 키 목록
      */
     public Set<String> listQueueKeys() {
-        // queue:{eventId} 형태만 가져오도록 패턴 제한
-        return redisTemplate.keys(QUEUE_KEY_PREFIX + "[0-9]*");
+        Set<String> keys = new HashSet<>();
+        ScanOptions scanOptions = ScanOptions.scanOptions()
+                .match(QUEUE_KEY_PREFIX + "[0-9]*")
+                .count(100)
+                .build();
+        
+        try (Cursor<String> cursor = redisTemplate.scan(scanOptions)) {
+            while (cursor.hasNext()) {
+                keys.add(cursor.next());
+            }
+        }
+        return keys;
     }
 
     /**

@@ -63,13 +63,15 @@ public class TicketingServiceImpl implements TicketingService {
         }
 
         // 좌석이 이미 예약되었는지 확인
+        // JPA Dirty Checking: 영속성 컨텍스트에서 관리되는 엔티티는
+        // 트랜잭션 커밋 시 자동으로 변경사항이 DB에 반영됩니다.
         for (SeatInventory inventory : selectedInventories) {
             if (inventory.getStatus() != SeatStatus.AVAILABLE) {
                 throw new CustomException(ErrorCode.SEAT_ALREADY_RESERVED);
             }
             inventory.setStatus(SeatStatus.RESERVED); // 좌석 상태를 '예약됨'으로 변경
         }
-        seatInventoryRepository.saveAll(selectedInventories);
+        // Dirty Checking으로 트랜잭션 종료 시 자동 반영되므로 saveAll() 불필요
 
         BigDecimal totalPrice = selectedInventories.stream()
                 .map(inv -> inv.getSeat().getBasePrice())
@@ -150,16 +152,16 @@ public class TicketingServiceImpl implements TicketingService {
         }
 
         reservation.setStatus(ReservationStatus.CANCELLED);
-        reservationRepository.save(reservation);
+        // Dirty Checking: 트랜잭션 커밋 시 자동 반영
 
-
+        // 좌석 상태 변경 (Dirty Checking으로 자동 반영)
         List<SeatInventory> inventoriesToRelease = new ArrayList<>();
         for (ReservationSeat reservationSeat : reservation.getReservationSeats()) {
             SeatInventory inventory = reservationSeat.getSeatInventory();
             inventory.setStatus(SeatStatus.AVAILABLE); // 좌석 상태를 '사용 가능'으로 변경
             inventoriesToRelease.add(inventory);
         }
-        seatInventoryRepository.saveAll(inventoriesToRelease);
+        // saveAll() 불필요: JPA Dirty Checking으로 트랜잭션 커밋 시 자동 반영
 
         // WebSocket으로 좌석 상태 브로드캐스트
         seatRealtimeService.broadcastSeatStatuses(reservation.getShowtime().getId(), inventoriesToRelease);
