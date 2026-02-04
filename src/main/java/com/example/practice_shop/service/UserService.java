@@ -115,23 +115,23 @@ public class UserService {
 
     /**
      * 비밀번호 재설정 요청
+     * 보안: 계정 열거 공격 방지를 위해 이메일 존재 여부와 관계없이 동일한 응답 반환
      * @param email
      */
     public void requestPasswordReset(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
-
-        if (!user.isEmailVerified()) {
-            throw new IllegalStateException("이메일 인증을 완료한 이후에 비밀번호를 재설정할 수 있습니다.");
-        }
-
-        String token = generateToken();
-        LocalDateTime now = LocalDateTime.now();
-        user.setPasswordResetToken(token);
-        user.setPasswordResetExpiredAt(now.plus(PASSWORD_RESET_TOKEN_VALIDITY));
-        userRepository.save(user);
-
-        sendPasswordResetEmail(user);
+        // 이메일 존재 여부와 관계없이 항상 성공 응답 (계정 열거 공격 방지)
+        userRepository.findByEmail(email).ifPresent(user -> {
+            if (user.isEmailVerified()) {
+                String token = generateToken();
+                LocalDateTime now = LocalDateTime.now();
+                user.setPasswordResetToken(token);
+                user.setPasswordResetExpiredAt(now.plus(PASSWORD_RESET_TOKEN_VALIDITY));
+                userRepository.save(user);
+                sendPasswordResetEmail(user);
+            }
+        });
+        // 이메일이 없거나 인증되지 않은 경우에도 같은 응답 반환
+        // Controller에서 동일한 성공 메시지를 보내므로 공격자가 이메일 존재 여부 파악 불가
     }
 
     /**

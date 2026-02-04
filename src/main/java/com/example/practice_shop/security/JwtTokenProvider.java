@@ -20,16 +20,33 @@ public class JwtTokenProvider {
     private final long accessTokenValidity; // Access Token의 유효 시간
     private final long refreshTokenValidity; // Refresh Token의 유효 시간
     private final long temporaryRegistrationTokenValidity; // 임시 등록 토큰의 유효 시간
+    private static final int MIN_SECRET_KEY_BYTES = 32; // HMAC-SHA256 최소 256비트
 
     /**
-     * 생성자. application.yml에서 jwt.secret 값을 주입받아 초기화합니다.
-     * @param jwtSecret JWT 서명에 사용할 비밀 키 문자열
+     * 생성자. application.yml에서 jwt 설정값을 주입받아 초기화합니다.
+     * @param jwtSecret JWT 서명에 사용할 비밀 키 문자열 (최소 32자 이상)
+     * @param accessTokenValidity Access Token 유효시간 (밀리초, 기본값 1시간)
+     * @param refreshTokenValidity Refresh Token 유효시간 (밀리초, 기본값 7일)
+     * @param tempTokenValidity 임시 토큰 유효시간 (밀리초, 기본값 5분)
      */
-    public JwtTokenProvider(@Value("${jwt.secret}") String jwtSecret) {
-        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-        this.accessTokenValidity = 1000L * 60 * 60; // 1시간
-        this.refreshTokenValidity = 1000L * 60 * 60 * 24 * 7; // 7일
-        this.temporaryRegistrationTokenValidity = 1000L * 60 * 5; // 5분
+    public JwtTokenProvider(
+            @Value("${jwt.secret}") String jwtSecret,
+            @Value("${jwt.access-token-validity:3600000}") long accessTokenValidity,
+            @Value("${jwt.refresh-token-validity:604800000}") long refreshTokenValidity,
+            @Value("${jwt.temp-token-validity:300000}") long tempTokenValidity) {
+        
+        // Secret Key 길이 검증 (HMAC-SHA256은 최소 256비트 필요)
+        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < MIN_SECRET_KEY_BYTES) {
+            throw new IllegalArgumentException(
+                String.format("JWT secret key must be at least %d bytes (256 bits) for HMAC-SHA256. Current: %d bytes", 
+                    MIN_SECRET_KEY_BYTES, keyBytes.length));
+        }
+        
+        this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.accessTokenValidity = accessTokenValidity;
+        this.refreshTokenValidity = refreshTokenValidity;
+        this.temporaryRegistrationTokenValidity = tempTokenValidity;
     }
 
     /**
@@ -66,11 +83,8 @@ public class JwtTokenProvider {
      * @return 생성된 JWT 문자열
      */
     private String createToken(String subject, String username, Role role, long validity) {
-        // 토큰 생성
-        System.out.println("Role being added to token: " + role);
         // 현재 시간과 유효 시간 계산
         Date now = new Date();
-        // 토큰 만료 시간 계산
         Date expiry = new Date(now.getTime() + validity);
 
         // JWT 생성

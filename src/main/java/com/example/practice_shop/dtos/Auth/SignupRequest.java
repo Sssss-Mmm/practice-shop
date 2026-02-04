@@ -18,6 +18,11 @@ public class SignupRequest {
     private String email;
 
     @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
+    @Size(min = 8, max = 100, message = "비밀번호는 8자 이상 100자 이하여야 합니다.")
+    @Pattern(
+        regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).*$",
+        message = "비밀번호는 숫자, 소문자, 대문자, 특수문자(@#$%^&+=!)를 각각 1개 이상 포함해야 합니다."
+    )
     private String password;
 
     @NotBlank(message = "이름은 필수 입력 항목입니다.")

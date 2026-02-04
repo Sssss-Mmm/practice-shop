@@ -1,6 +1,7 @@
 package com.example.practice_shop.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,7 +30,41 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     protected ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         log.error("handleMethodArgumentNotValidException", e);
-        // 필요하다면 e.getBindingResult()를 사용하여 더 상세한 오류 메시지를 만들 수 있습니다.
-        return ResponseEntity.status(ErrorCode.INVALID_INPUT_VALUE.getStatus()).body(new ErrorResponse(ErrorCode.INVALID_INPUT_VALUE));
+        return ResponseEntity.status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
+                .body(new ErrorResponse(ErrorCode.INVALID_INPUT_VALUE));
+    }
+
+    /**
+     * IllegalArgumentException을 처리합니다.
+     * 잘못된 인자로 인한 예외 (400 Bad Request)
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    protected ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.error("handleIllegalArgumentException: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(ErrorCode.INVALID_INPUT_VALUE, e.getMessage()));
+    }
+
+    /**
+     * IllegalStateException을 처리합니다.
+     * 잘못된 상태로 인한 예외 (409 Conflict)
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    protected ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException e) {
+        log.error("handleIllegalStateException: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(ErrorCode.INVALID_INPUT_VALUE, e.getMessage()));
+    }
+
+    /**
+     * 예상치 못한 모든 Exception을 처리합니다.
+     * 서버 내부 오류 (500 Internal Server Error)
+     */
+    @ExceptionHandler(Exception.class)
+    protected ResponseEntity<ErrorResponse> handleException(Exception e) {
+        log.error("Unhandled exception occurred", e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse(ErrorCode.INTERNAL_SERVER_ERROR));
     }
 }
+
