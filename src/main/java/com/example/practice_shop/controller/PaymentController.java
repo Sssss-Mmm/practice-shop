@@ -1,9 +1,12 @@
 package com.example.practice_shop.controller;
 
 import com.example.practice_shop.dtos.Payment.TossPaymentConfirmRequest;
+import com.example.practice_shop.service.payment.PaymentProcessorStrategy;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private final com.example.practice_shop.service.TicketingService ticketingService;
+    private final List<PaymentProcessorStrategy> paymentProcessors;
 
     /**
      * 토스 결제 승인
@@ -29,11 +32,12 @@ public class PaymentController {
     public ResponseEntity<?> confirmTossPayment(Authentication authentication,
                                                             @Valid @RequestBody TossPaymentConfirmRequest request) {
         
-        if (request.getOrderId().startsWith("tck-")) {
-            ticketingService.confirmPayment(request.getOrderId(), request.getPaymentKey(), request.getAmount());
-            return ResponseEntity.ok("Payment confirmed for reservation");
-        }
+        PaymentProcessorStrategy processor = paymentProcessors.stream()
+                .filter(p -> p.supports(request.getOrderId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("지원하지 않는 주문 유형입니다."));
         
-        return ResponseEntity.badRequest().body("지원하지 않는 주문 유형입니다.");
+        processor.process(request);
+        return ResponseEntity.ok("Payment confirmed");
     }
 }

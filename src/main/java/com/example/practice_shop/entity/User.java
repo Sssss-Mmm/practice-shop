@@ -162,5 +162,30 @@ public class User extends BaseTimeEntity {
         this.totalSpend += amount;
         this.userGrade = UserGrade.fromTotalSpend(this.totalSpend);
     }
-    
+
+    /** 이메일 인증 완료 처리 */
+    public void completeEmailVerification() {
+        this.emailVerified = true;
+        this.emailVerifiedAt = LocalDateTime.now();
+        this.emailVerificationToken = null;
+        this.emailVerificationExpiredAt = null;
+        this.emailVerificationSentAt = null;
+        this.status = Status.ACTIVE;
+    }
+
+    /** 비밀번호 재설정 토큰 생성 */
+    public void initiatePasswordReset(String token, java.time.Duration validity) {
+        this.passwordResetToken = token;
+        this.passwordResetExpiredAt = LocalDateTime.now().plus(validity);
+    }
+
+    /** 프로필 업데이트 */
+    public void updateProfile(String nickname, String phoneNumber, String region, String address, String gender, String birthDate) {
+        this.nickname = nickname;
+        this.phoneNumber = phoneNumber;
+        this.region = region;
+        this.address = address;
+        this.gender = gender;
+        this.birthDate = birthDate;
+    }
 }

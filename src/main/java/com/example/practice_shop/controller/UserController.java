@@ -2,7 +2,7 @@ package com.example.practice_shop.controller;
 
 import com.example.practice_shop.dtos.User.UserProfileResponse;
 import com.example.practice_shop.dtos.User.UserProfileUpdateRequest;
-import com.example.practice_shop.service.UserService;
+import com.example.practice_shop.service.user.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,19 +17,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    private final UserProfileService userProfileService;
 
     @GetMapping("/profile")
     public ResponseEntity<UserProfileResponse> getUserProfile(Authentication authentication) {
         String email = authentication.getName();
-        UserProfileResponse userProfile = userService.getUserProfile(email);
+        UserProfileResponse userProfile = userProfileService.getUserProfile(email);
         return ResponseEntity.ok(userProfile);
     }
 
     @PutMapping("/profile")
     public ResponseEntity<UserProfileResponse> updateUserProfile(Authentication authentication, @RequestBody UserProfileUpdateRequest request) {
         String email = authentication.getName();
-        UserProfileResponse updatedProfile = userService.updateUserProfile(email, request);
+        UserProfileResponse updatedProfile = userProfileService.updateUserProfile(email, request);
         return ResponseEntity.ok(updatedProfile);
     }
 }

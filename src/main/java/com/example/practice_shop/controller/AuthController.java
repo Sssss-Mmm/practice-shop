@@ -8,7 +8,10 @@ import com.example.practice_shop.dtos.Auth.SignupRequest;
 import com.example.practice_shop.dtos.Auth.UserLogin;
 import com.example.practice_shop.dtos.Auth.UserLogout;
 import com.example.practice_shop.dtos.Auth.VerifyEmailRequest;
-import com.example.practice_shop.service.UserService;
+import com.example.practice_shop.service.auth.AuthService;
+import com.example.practice_shop.service.auth.EmailVerificationService;
+import com.example.practice_shop.service.auth.PasswordResetService;
+import com.example.practice_shop.service.auth.RegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +32,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
     
-    private final UserService userService;
+    private final AuthService authService;
+    private final RegistrationService registrationService;
+    private final EmailVerificationService emailVerificationService;
+    private final PasswordResetService passwordResetService;
 
     /**
      * 로컬 사용자 회원가입 엔드포인트입니다.
@@ -39,7 +45,7 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
     public ResponseEntity<String> register(@Valid @RequestBody SignupRequest signupRequest) {
-        userService.register(signupRequest);
+        registrationService.register(signupRequest);
         return ResponseEntity.ok("회원가입 성공");
     }
 
@@ -51,19 +57,19 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "로컬 로그인", description = "사용자가 이메일과 비밀번호로 로그인을 합니다.")
     public ResponseEntity<Map<String,String>> login(@Valid @RequestBody UserLogin userLogin) {
-        Map<String,String> response  = userService.localLogin(userLogin);
+        Map<String,String> response  = authService.localLogin(userLogin);
         return ResponseEntity.ok(response);
     }
 
     /**
      * oauth2 사용자 정보 없는 경우 회원정보 등록 엔드포인트입니다.
-     * @param signupRequest 회원가입 정보
+     * @param request 회원가입 정보
      * @return 성공 메시지
      */
     @PostMapping("/oauth2/register")
     @Operation(summary = "OAuth2 회원가입 완료",description = "OAuth2로 인증된 사용자가 추가 정보를 입력하여 회원가입을 완료합니다.")
     public ResponseEntity<Map<String, String>> oauth2CompleteRegistration(@Valid @RequestBody OAuth2RegistrationRequest request){
-        Map<String, String> tokens = userService.completeOAuth2Registration(request);
+        Map<String, String> tokens = registrationService.completeOAuth2Registration(request);
         return ResponseEntity.ok(tokens);
     }
 
@@ -75,7 +81,7 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(summary = "로그아웃",description = "사용자가 로그아웃을 합니다.")
     public ResponseEntity<String> logout(@RequestBody UserLogout userLogout){
-        userService.logout(userLogout);
+        authService.logout(userLogout);
         return ResponseEntity.ok("로그아웃 성공");
     }
     /**
@@ -86,35 +92,35 @@ public class AuthController {
     @PostMapping("/refresh-token")
     @Operation(summary = "토큰 재발급",description = "사용자가 만료된 Access Token을 갱신합니다.")
     public ResponseEntity<Map<String,String>> refreshToken(@RequestBody String refreshToken){
-        Map<String,String> response = userService.refreshToken(refreshToken);
+        Map<String,String> response = authService.refreshToken(refreshToken);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/verify-email")
     @Operation(summary = "이메일 인증", description = "이메일 인증 토큰을 검증합니다.")
     public ResponseEntity<String> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
-        userService.verifyEmail(request.getToken());
+        emailVerificationService.verifyEmail(request.getToken());
         return ResponseEntity.ok("이메일 인증이 완료되었습니다.");
     }
 
     @PostMapping("/verify-email/resend")
     @Operation(summary = "이메일 인증 재발송", description = "인증 이메일을 다시 발송합니다.")
     public ResponseEntity<String> resendVerificationEmail(@Valid @RequestBody ResendVerificationEmailRequest request) {
-        userService.resendEmailVerification(request.getEmail());
+        emailVerificationService.resendEmailVerification(request.getEmail());
         return ResponseEntity.ok("인증 이메일을 다시 발송했습니다.");
     }
 
     @PostMapping("/forgot-password")
     @Operation(summary = "비밀번호 재설정 요청", description = "비밀번호 재설정 이메일을 발송합니다.")
     public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        userService.requestPasswordReset(request.getEmail());
+        passwordResetService.requestPasswordReset(request.getEmail());
         return ResponseEntity.ok("비밀번호 재설정 안내 이메일을 발송했습니다.");
     }
 
     @PostMapping("/reset-password")
     @Operation(summary = "비밀번호 재설정", description = "토큰을 검증하고 새 비밀번호로 변경합니다.")
     public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-        userService.resetPassword(request.getToken(), request.getNewPassword());
+        passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok("비밀번호를 재설정했습니다.");
     }
 }

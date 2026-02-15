@@ -20,17 +20,12 @@ public class QueueService {
 
     /**
      * Redis 기반 대기열을 관리하는 서비스.
-     * - queue:{eventId}: 정렬집합으로 순번 관리
-     * - queue:ready:{eventId}: 입장 허용 토큰 모음
-     * - queue:token:{token}: 토큰 메타 정보(eventId, userId 등)
+     * 데이터 접근은 QueueRepository를 통해 수행합니다.
      */
-    private static final String QUEUE_KEY_PREFIX = "queue:"; // 큐 키
-    private static final String READY_KEY_PREFIX = "queue:ready:"; // 허용 토큰 모음
-    private static final String TOKEN_KEY_PREFIX = "queue:token:"; // 토큰 메타 정보
     private static final Duration READY_TTL = Duration.ofMinutes(5); // 허용 토큰 유지 시간
     private static final int DEFAULT_ALLOW_PER_TICK = 300; // 허용 토큰 수
 
-    private final StringRedisTemplate redisTemplate;
+    private final com.example.practice_shop.repository.QueueRepository queueRepository;
 
     /**
      * 대기열에 입장합니다.
@@ -41,17 +36,19 @@ public class QueueService {
     public QueueEnterResponse enter(Long eventId, String userId) {
         String token = UUID.randomUUID().toString();
         long now = System.currentTimeMillis();
-        String queueKey = queueKey(eventId);
 
-        redisTemplate.opsForZSet().add(queueKey, token, now);
-        redisTemplate.opsForHash().putAll(tokenKey(token), Map.of(
+        queueRepository.addToQueue(eventId, token, now);
+        
+        Map<String, String> meta = Map.of(
                 "eventId", eventId.toString(),
                 "userId", userId != null ? userId : "anonymous",
                 "createdAt", Long.toString(now)
-        ));
+        );
+        queueRepository.saveTokenMeta(token, meta);
 
-        Long rank = redisTemplate.opsForZSet().rank(queueKey, token);
+        Long rank = queueRepository.getRank(eventId, token);
         long position = rank == null ? -1 : rank + 1;
+        
         return QueueEnterResponse.builder()
                 .token(token)
                 .position(position)
@@ -64,15 +61,16 @@ public class QueueService {
      * @return
      */
     public QueueStatusResponse status(String token) {
-        Map<Object, Object> meta = redisTemplate.opsForHash().entries(tokenKey(token));
+        Map<Object, Object> meta = queueRepository.getTokenMeta(token);
         if (CollectionUtils.isEmpty(meta)) {
             throw new IllegalArgumentException("유효하지 않은 대기열 토큰입니다.");
         }
         Long eventId = Long.valueOf((String) meta.get("eventId"));
-        String queueKey = queueKey(eventId);
-        Long rank = redisTemplate.opsForZSet().rank(queueKey, token);
+        
+        Long rank = queueRepository.getRank(eventId, token);
         long position = rank == null ? -1 : rank + 1;
-        boolean ready = Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(readyKey(eventId), token));
+        boolean ready = queueRepository.isReady(eventId, token);
+        
         return QueueStatusResponse.builder()
                 .ready(ready)
                 .position(position)
@@ -85,73 +83,23 @@ public class QueueService {
      * @param allowCount
      */
     public void allowEntriesForEvent(Long eventId, int allowCount) {
-        String queueKey = queueKey(eventId);
-        Set<String> tokens = redisTemplate.opsForZSet().range(queueKey, 0, allowCount - 1);
+        Set<String> tokens = queueRepository.getTokensInRange(eventId, 0, allowCount - 1);
         if (tokens == null || tokens.isEmpty()) {
             return;
         }
         tokens.forEach(token -> {
-            redisTemplate.opsForZSet().remove(queueKey, token);
-            markReady(eventId, token);
+            queueRepository.removeFromQueue(eventId, token);
+            queueRepository.markReady(eventId, token, READY_TTL);
         });
     }
 
     /**
      * 큐 키 목록을 가져옵니다.
-     * SCAN 명령어를 사용하여 프로덕션 환경에서 블로킹을 방지합니다.
+     * Repository의 SCAN 기능을 사용합니다.
      * @return 큐 키 목록
      */
     public Set<String> listQueueKeys() {
-        Set<String> keys = new HashSet<>();
-        ScanOptions scanOptions = ScanOptions.scanOptions()
-                .match(QUEUE_KEY_PREFIX + "[0-9]*")
-                .count(100)
-                .build();
-        
-        try (Cursor<String> cursor = redisTemplate.scan(scanOptions)) {
-            while (cursor.hasNext()) {
-                keys.add(cursor.next());
-            }
-        }
-        return keys;
-    }
-
-    /**
-     * 토큰을 입장 허용 상태로 변경합니다.
-     * @param eventId
-     * @param token
-     */
-    private void markReady(Long eventId, String token) {
-        String readyKey = readyKey(eventId);
-        redisTemplate.opsForSet().add(readyKey, token);
-        redisTemplate.expire(readyKey, READY_TTL);
-    }
-
-    /**
-     * 큐 키를 가져옵니다.
-     * @param eventId
-     * @return
-     */
-    private String queueKey(Long eventId) {
-        return QUEUE_KEY_PREFIX + eventId;
-    }
-
-    /**
-     * 허용 토큰 키를 가져옵니다.
-     * @param eventId
-     * @return
-     */
-    private String readyKey(Long eventId) {
-        return READY_KEY_PREFIX + eventId;
-    }
-
-    /**
-     * 토큰 키를 가져옵니다.
-     * @param token
-     * @return
-     */
-    private String tokenKey(String token) {
-        return TOKEN_KEY_PREFIX + token;
+        return queueRepository.scanQueueKeys(100);
     }
 
     /**
