@@ -120,15 +120,15 @@ src
 │   │       ├── config          # 설정 (Security, Swagger, WebSocket 등)
 │   │       ├── constant        # Enums (Role, Status 등)
 │   │       ├── controller      # API 엔드포인트
-│   │       ├── dto             # 데이터 전송 객체
+│   │       ├── dtos            # 데이터 전송 객체
 │   │       ├── entity          # DB 엔티티 (JPA)
 │   │       ├── exception       # 전역 예외 처리
+│   │       ├── integration     # 외부 연동 (결제, RAG 등)
 │   │       ├── repository      # DB 접근 계층
-│   │       ├── service         # 비즈니스 로직
-│   │       └── util            # 유틸리티 클래스
+│   │       ├── security        # 인증/인가 (JWT, OAuth2 핸들러)
+│   │       └── service         # 비즈니스 로직
 │   └── resources
 │       ├── static              # 정적 리소스
-│       ├── templates           # (Optional) SSR 템플릿
 │       └── application.yml     # 설정 파일
 └── test                        # JUnit & Mockito 테스트
 ```
@@ -227,7 +227,8 @@ python main.py
 ### 4. 대기열 부하 테스트 (Load Testing)
 대기열 시스템의 성능을 검증하기 위한 Python 스크립트가 제공됩니다.
 ```bash
-# 가상환경 설정 및 실행 권장
-python3 scripts/load_test_queue.py
+# 별도 의존성 없이 표준 라이브러리만으로 실행됩니다.
+python3 scripts/load_test_queue.py --users 200 --event 1
 ```
-- 다수의 쓰레드를 생성하여 대기열 진입 시나리오를 시뮬레이션합니다.
+- 다수의 쓰레드를 생성하여 대기열 진입(`enter`) 후 입장 가능(`ready`)까지 순번을 폴링하는 시나리오를 시뮬레이션합니다.
+- 옵션: `--url`(기본 `http://localhost:8084`), `--users`, `--workers`, `--polls` 등. `--help`로 전체 확인.
