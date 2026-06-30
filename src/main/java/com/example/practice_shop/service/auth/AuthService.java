@@ -35,8 +35,9 @@ public class AuthService {
         User user = userRepository.findByEmail(userLogin.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_CREDENTIALS));
 
+        // 소셜 계정 여부는 노출하지 않음 (계정 열거 방지) → 자격증명 오류로 통일
         if (!"local".equalsIgnoreCase(user.getProvider())) {
-            throw new IllegalArgumentException("소셜 계정은 해당 플랫폼 로그인을 사용하세요.");
+            throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
         }
 
         if (user.getPassword() == null || !passwordEncoder.matches(userLogin.getPassword(), user.getPassword())) {
@@ -44,11 +45,11 @@ public class AuthService {
         }
 
         if (!user.isEmailVerified()) {
-            throw new IllegalStateException("이메일 인증이 완료되지 않았습니다.");
+            throw new CustomException(ErrorCode.EMAIL_NOT_VERIFIED);
         }
 
         if (user.getStatus() != Status.ACTIVE) {
-            throw new IllegalStateException("비활성화된 계정입니다.");
+            throw new CustomException(ErrorCode.ACCOUNT_INACTIVE);
         }
 
         // JWT 생성
@@ -119,7 +120,7 @@ public class AuthService {
         }
 
         if (!user.isEmailVerified() || user.getStatus() != Status.ACTIVE) {
-            throw new IllegalStateException("비활성화된 계정입니다.");
+            throw new CustomException(ErrorCode.ACCOUNT_INACTIVE);
         }
 
         // 새로운 토큰 생성

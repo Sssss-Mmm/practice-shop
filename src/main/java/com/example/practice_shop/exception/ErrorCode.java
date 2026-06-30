@@ -18,6 +18,8 @@ public enum ErrorCode {
     EMAIL_ALREADY_IN_USE(HttpStatus.CONFLICT, "U002", "이미 사용 중인 이메일입니다."),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "U003", "이메일 또는 비밀번호가 일치하지 않습니다."),
     UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "U004", "접근 권한이 없습니다."),
+    EMAIL_NOT_VERIFIED(HttpStatus.FORBIDDEN, "U005", "이메일 인증이 완료되지 않았습니다."),
+    ACCOUNT_INACTIVE(HttpStatus.FORBIDDEN, "U006", "비활성화된 계정입니다."),
 
     // Ticketing
     SHOWTIME_NOT_FOUND(HttpStatus.NOT_FOUND, "T001", "해당 회차 정보를 찾을 수 없습니다."),

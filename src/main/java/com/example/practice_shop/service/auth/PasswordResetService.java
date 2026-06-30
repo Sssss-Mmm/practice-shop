@@ -52,12 +52,17 @@ public class PasswordResetService {
      */
     @Transactional
     public void resetPassword(String token, String newPassword) {
-        User user = userRepository.findByPasswordResetToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 재설정 토큰입니다."));
+        // null/빈 토큰이 passwordResetToken=null 유저를 매칭하는 것 방지
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("유효하지 않은 재설정 토큰입니다.");
+        }
 
         if (newPassword == null || newPassword.isBlank()) {
             throw new IllegalArgumentException("새로운 비밀번호를 입력해 주세요.");
         }
+
+        User user = userRepository.findByPasswordResetToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 재설정 토큰입니다."));
 
         if (user.getPasswordResetExpiredAt() == null
                 || user.getPasswordResetExpiredAt().isBefore(LocalDateTime.now())) {

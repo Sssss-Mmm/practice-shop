@@ -1,7 +1,7 @@
 package com.example.practice_shop.service.user;
 
 import com.example.practice_shop.dtos.User.UserProfileResponse;
-import com.example.practice_shop.dtos.User.UserProfileUpdate;
+import com.example.practice_shop.dtos.User.UserProfileUpdateRequest;
 import com.example.practice_shop.entity.User;
 import com.example.practice_shop.exception.CustomException;
 import com.example.practice_shop.exception.ErrorCode;
@@ -35,7 +35,7 @@ public class UserProfileService {
      * @param profileUpdate 프로필 수정 요청 DTO
      */
     @Transactional
-    public UserProfileResponse updateUserProfile(String email, UserProfileUpdate profileUpdate) {
+    public UserProfileResponse updateUserProfile(String email, UserProfileUpdateRequest profileUpdate) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
