@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import SeatService from '../services/seat.service';
 import ShowtimeService from '../services/showtime.service';
 import WebSocketService from '../services/websocket.service';
@@ -8,7 +8,10 @@ import './SeatSelectionPage.css';
 const SeatSelectionPage = () => {
     const { showtimeId } = useParams();
     const navigate = useNavigate();
-    
+    const location = useLocation();
+    // 대기열에서 받은 입장 토큰. 예매 API가 Queue-Token 헤더로 요구한다.
+    const queueToken = location.state?.queueToken;
+
     const [showtime, setShowtime] = useState(null);
     const [seats, setSeats] = useState([]);
     const [selectedSeats, setSelectedSeats] = useState([]);
@@ -118,8 +121,7 @@ const SeatSelectionPage = () => {
             return;
         }
         // Navigate to checkout page with selected seats info
-        // Note: You can also pass the queueToken if needed for validation at checkout
-        navigate('/checkout', { state: { selectedSeats, showtimeId, showtimeInfo: showtime } });
+        navigate('/checkout', { state: { selectedSeats, showtimeId, showtimeInfo: showtime, queueToken } });
     };
 
     if (error) return <div className="seat-selection-container error-container">{error}</div>;

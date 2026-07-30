@@ -4,8 +4,10 @@ import AuthService from './auth.service';
 const API_URL = '/api/ticketing';
 const authConfig = () => ({ headers: AuthService.authHeader() });
 
-const reserveSeats = (payload) => {
-    return axios.post(`${API_URL}/reserve`, payload, authConfig());
+const reserveSeats = (payload, queueToken) => {
+    return axios.post(`${API_URL}/reserve`, payload, {
+        headers: { ...AuthService.authHeader(), 'Queue-Token': queueToken }
+    });
 };
 
 const getMyReservations = () => {

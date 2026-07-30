@@ -149,7 +149,7 @@ const CheckoutPage = () => {
                     showtimeId: ticketingState.showtimeId,
                     seatIds: ticketingState.selectedSeats.map(s => s.seatId)
                 };
-                const res = await TicketingService.reserveSeats(payload);
+                const res = await TicketingService.reserveSeats(payload, ticketingState.queueToken);
                 setMessage('결제창으로 이동합니다...');
                 // res.data is ReservationResponse
                 await requestTossPayment(res.data.orderId, res.data.totalPrice);

@@ -11,8 +11,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,36 +32,35 @@ public class ReviewController {
     @PostMapping("/event/{eventId}")
     @Operation(summary = "리뷰 작성")
     public ResponseEntity<ReviewResponse> create(
-            @AuthenticationPrincipal UserDetails userDetails,
+            Authentication authentication,
             @PathVariable Long eventId,
             @Valid @RequestBody ReviewRequest request) {
-        Long userId = getUserId(userDetails);
+        Long userId = getUserId(authentication);
         return ResponseEntity.ok(reviewService.create(userId, eventId, request));
     }
 
     @GetMapping("/event/{eventId}")
     @Operation(summary = "리뷰 목록 조회")
     public ResponseEntity<List<ReviewResponse>> list(
-            @AuthenticationPrincipal UserDetails userDetails,
+            Authentication authentication,
             @PathVariable Long eventId) {
-        Long userId = userDetails != null ? getUserId(userDetails) : null;
+        Long userId = authentication != null ? getUserId(authentication) : null;
         return ResponseEntity.ok(reviewService.list(userId, eventId));
     }
 
     @DeleteMapping("/{reviewId}")
     @Operation(summary = "리뷰 삭제")
     public ResponseEntity<Void> delete(
-            @AuthenticationPrincipal UserDetails userDetails,
+            Authentication authentication,
             @PathVariable Long reviewId) {
-        Long userId = getUserId(userDetails);
+        Long userId = getUserId(authentication);
         reviewService.delete(userId, reviewId);
         return ResponseEntity.ok().build();
     }
 
-    private Long getUserId(UserDetails userDetails) {
-        // This is a simplified user lookup. Ideally use a custom UserDetails implementation that holds ID.
-        // Assuming userDetails.getUsername() returns email which is unique.
-        return userRepository.findByEmail(userDetails.getUsername())
+    private Long getUserId(Authentication authentication) {
+        // JwtAuthenticationFilter가 principal에 이메일을 넣으므로 getName()이 곧 이메일이다.
+        return userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"))
                 .getId();
     }

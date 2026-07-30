@@ -19,9 +19,11 @@ import com.example.practice_shop.repository.PaymentRepository; // Import Added
 import com.example.practice_shop.integration.toss.TossPaymentClient; // Import Added
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -40,6 +42,9 @@ public class TicketingService {
     private final SeatRealtimeService seatRealtimeService;
     private final TossPaymentClient tossPaymentClient;
     private final PaymentRepository paymentRepository;
+
+    /** 결제 대기 좌석을 점유해 두는 시간. 이 시간이 지나면 스케줄러가 회수한다. */
+    private static final Duration HOLD_DURATION = Duration.ofMinutes(10);
 
     /**
      * 예약을 생성합니다.
@@ -64,11 +69,13 @@ public class TicketingService {
         // 좌석이 이미 예약되었는지 확인
         // JPA Dirty Checking: 영속성 컨텍스트에서 관리되는 엔티티는
         // 트랜잭션 커밋 시 자동으로 변경사항이 DB에 반영됩니다.
+        LocalDateTime holdExpiresAt = LocalDateTime.now().plus(HOLD_DURATION);
         for (SeatInventory inventory : selectedInventories) {
             if (inventory.getStatus() != SeatStatus.AVAILABLE) {
                 throw new CustomException(ErrorCode.SEAT_ALREADY_RESERVED);
             }
             inventory.setStatus(SeatStatus.RESERVED); // 좌석 상태를 '예약됨'으로 변경
+            inventory.setHoldExpiresAt(holdExpiresAt); // 결제 미완료 시 회수 기준 시각
         }
         // Dirty Checking으로 트랜잭션 종료 시 자동 반영되므로 saveAll() 불필요
 
@@ -148,6 +155,30 @@ public class TicketingService {
             });
         }
 
+        releaseReservation(reservation);
+    }
+
+    /**
+     * 결제되지 않은 채 홀드 시간이 지난 예약을 회수합니다.
+     * <p>
+     * 결제창에서 이탈한 사용자가 좌석을 영구 점유하는 것을 막습니다.
+     * </p>
+     */
+    @Scheduled(fixedDelay = 60_000)
+    @Transactional
+    public void releaseExpiredHolds() {
+        LocalDateTime cutoff = LocalDateTime.now().minus(HOLD_DURATION);
+        List<Reservation> expired = reservationRepository
+                .findByStatusAndReservedAtBefore(ReservationStatus.PENDING_PAYMENT, cutoff);
+
+        expired.forEach(this::releaseReservation);
+    }
+
+    /**
+     * 예약을 취소 상태로 바꾸고 점유 중이던 좌석을 모두 반환합니다.
+     * @param reservation 대상 예약
+     */
+    private void releaseReservation(Reservation reservation) {
         reservation.setStatus(ReservationStatus.CANCELLED);
         // Dirty Checking: 트랜잭션 커밋 시 자동 반영
 
@@ -156,6 +187,7 @@ public class TicketingService {
         for (ReservationSeat reservationSeat : reservation.getReservationSeats()) {
             SeatInventory inventory = reservationSeat.getSeatInventory();
             inventory.setStatus(SeatStatus.AVAILABLE); // 좌석 상태를 '사용 가능'으로 변경
+            inventory.setHoldExpiresAt(null); // 점유 해제
             inventoriesToRelease.add(inventory);
         }
         // saveAll() 불필요: JPA Dirty Checking으로 트랜잭션 커밋 시 자동 반영
@@ -197,6 +229,19 @@ public class TicketingService {
         reservation.setStatus(ReservationStatus.PAID);
         reservation.setPaymentKey(paymentKey);
         reservationRepository.save(reservation);
+
+        // 좌석을 판매 완료로 확정하고 홀드를 해제한다.
+        List<SeatInventory> soldInventories = new ArrayList<>();
+        for (ReservationSeat reservationSeat : reservation.getReservationSeats()) {
+            SeatInventory inventory = reservationSeat.getSeatInventory();
+            inventory.setStatus(SeatStatus.SOLD);
+            inventory.setHoldExpiresAt(null);
+            soldInventories.add(inventory);
+        }
+        seatRealtimeService.broadcastSeatStatuses(reservation.getShowtime().getId(), soldInventories);
+
+        // 누적 결제 금액 반영 → 등급 자동 승급 (User.accumulateSpend)
+        reservation.getUser().accumulateSpend(amount);
 
         // Payment 엔티티 생성 및 저장
         com.example.practice_shop.entity.Payment payment = com.example.practice_shop.entity.Payment.builder()

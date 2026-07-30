@@ -93,9 +93,8 @@ public class RegistrationService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        if (user.getRole() != Role.GUEST) {
-            throw new IllegalStateException("이미 가입이 완료된 사용자입니다.");
-        }
+        // 가입 완료 여부는 프로필 충족 여부로만 판단한다(OAuth2AuthenticationSuccessHandler와 동일 기준).
+        // role은 결과일 뿐 게이트가 아니므로 여기서 검사하지 않는다.
 
         // 추가 정보 업데이트
         user.setName(request.getName());

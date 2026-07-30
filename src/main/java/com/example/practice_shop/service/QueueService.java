@@ -22,7 +22,8 @@ public class QueueService {
      * Redis 기반 대기열을 관리하는 서비스.
      * 데이터 접근은 QueueRepository를 통해 수행합니다.
      */
-    private static final Duration READY_TTL = Duration.ofMinutes(5); // 허용 토큰 유지 시간
+    // 좌석 선택에 걸리는 시간을 감안한 값. 예매 API가 이 토큰을 검사하므로 너무 짧으면 결제 직전에 튕긴다.
+    private static final Duration READY_TTL = Duration.ofMinutes(15); // 허용 토큰 유지 시간
     private static final int DEFAULT_ALLOW_PER_TICK = 300; // 허용 토큰 수
 
     private final com.example.practice_shop.repository.QueueRepository queueRepository;
@@ -75,6 +76,23 @@ public class QueueService {
                 .ready(ready)
                 .position(position)
                 .build();
+    }
+
+    /**
+     * 토큰이 입장 허용 상태인지 확인합니다. (예매 API 게이트용)
+     * @param token 대기열 토큰
+     * @return 허용 상태면 true. 토큰이 없거나 만료됐으면 false
+     */
+    public boolean isReady(String token) {
+        if (token == null || token.isBlank()) {
+            return false;
+        }
+        Map<Object, Object> meta = queueRepository.getTokenMeta(token);
+        if (CollectionUtils.isEmpty(meta)) {
+            return false;
+        }
+        Long eventId = Long.valueOf((String) meta.get("eventId"));
+        return queueRepository.isReady(eventId, token);
     }
 
     /**
