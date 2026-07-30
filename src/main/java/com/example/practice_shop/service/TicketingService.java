@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class TicketingServiceImpl implements TicketingService {
+public class TicketingService {
 
     private final UserRepository userRepository;
     private final ShowtimeRepository showtimeRepository;
@@ -47,7 +47,6 @@ public class TicketingServiceImpl implements TicketingService {
      * @param request
      * @return
      */
-    @Override
     @Transactional
     public ReservationResponse createReservation(String email, SeatSelectionRequest request) {
         User user = userRepository.findByEmail(email)
@@ -110,7 +109,6 @@ public class TicketingServiceImpl implements TicketingService {
      * @param email
      * @return
      */
-    @Override
     @Transactional(readOnly = true)
     public List<ReservationResponse> getUserReservations(String email) {
         List<Reservation> reservations = reservationRepository.findByUser_Email(email);
@@ -129,7 +127,6 @@ public class TicketingServiceImpl implements TicketingService {
      * @param email 사용자 이메일
      * @param reservationId 취소할 예약 ID
      */
-    @Override
     @Transactional
     public void cancelReservation(String email, Long reservationId) {
         Reservation reservation = reservationRepository.findByIdAndUser_Email(reservationId, email)
@@ -179,7 +176,6 @@ public class TicketingServiceImpl implements TicketingService {
      * @param paymentKey 결제 키
      * @param amount 결제 금액
      */
-    @Override
     @Transactional
     public void confirmPayment(String orderId, String paymentKey, Long amount) {
         Reservation reservation = reservationRepository.findByOrderId(orderId)
