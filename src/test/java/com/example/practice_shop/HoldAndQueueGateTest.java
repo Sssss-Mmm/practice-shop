@@ -7,11 +7,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.ignoreStubs;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.example.practice_shop.constant.ReservationStatus;
 import com.example.practice_shop.constant.SeatStatus;
+import com.example.practice_shop.dtos.ticketing.SeatStatusMessage;
 import com.example.practice_shop.entity.Reservation;
 import com.example.practice_shop.entity.ReservationSeat;
 import com.example.practice_shop.entity.SeatInventory;
@@ -27,11 +29,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * 스프링 컨텍스트/DB 없이 도는 최소 검증.
  * 1) 결제 대기로 방치된 예약의 좌석이 회수되는지
  * 2) 대기열 토큰 없이 예매가 통과되지 않는지
+ * 3) 좌석 브로드캐스트가 커밋 이후에만 나가는지
  */
 class HoldAndQueueGateTest {
 
@@ -109,5 +115,35 @@ class HoldAndQueueGateTest {
         queueService.consume("fake");
         queueService.consume(null);
         verifyNoMoreInteractions(ignoreStubs(queueRepository));
+    }
+
+    @Test
+    void 좌석_브로드캐스트는_커밋_이후에만_나간다() {
+        SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
+        SeatRealtimeService service = new SeatRealtimeService(messagingTemplate);
+        SeatInventory inventory = SeatInventory.builder().id(10L).status(SeatStatus.RESERVED).build();
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            service.broadcastSeatStatuses(1L, List.of(inventory));
+            // 커밋 전: 롤백될 수도 있으므로 아직 나가면 안 된다
+            verifyNoInteractions(messagingTemplate);
+
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(TransactionSynchronization::afterCommit);
+            verify(messagingTemplate).convertAndSend(eq("/topic/seat/1"), any(SeatStatusMessage.class));
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void 트랜잭션_밖에서는_즉시_브로드캐스트한다() {
+        SimpMessagingTemplate messagingTemplate = mock(SimpMessagingTemplate.class);
+        SeatRealtimeService service = new SeatRealtimeService(messagingTemplate);
+
+        service.broadcastSeatStatuses(1L, List.of(SeatInventory.builder().id(10L).build()));
+
+        verify(messagingTemplate).convertAndSend(eq("/topic/seat/1"), any(SeatStatusMessage.class));
     }
 }

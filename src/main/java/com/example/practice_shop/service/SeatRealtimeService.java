@@ -6,6 +6,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -19,12 +21,30 @@ public class SeatRealtimeService {
      * @param inventories
      */
     public void broadcastSeatStatuses(Long showtimeId, List<SeatInventory> inventories) {
+        // 메시지는 지금 만든다. 커밋 이후엔 영속성 컨텍스트가 닫혀 지연 로딩(getSeat())이 터진다.
         SeatStatusMessage message = SeatStatusMessage.builder()
                 .showtimeId(showtimeId)
                 .seats(inventories.stream().map(this::toSeatStatusItem).toList())
                 .build();
 
-        messagingTemplate.convertAndSend(topic(showtimeId), message);
+        afterCommit(() -> messagingTemplate.convertAndSend(topic(showtimeId), message));
+    }
+
+    /**
+     * 전송을 커밋 이후로 미룹니다. 트랜잭션이 롤백되면 브로드캐스트도 나가지 않습니다.
+     * (트랜잭션 밖에서 호출되면 되돌릴 것이 없으므로 즉시 전송)
+     */
+    private void afterCommit(Runnable send) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            send.run();
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                send.run();
+            }
+        });
     }
 
     /**
