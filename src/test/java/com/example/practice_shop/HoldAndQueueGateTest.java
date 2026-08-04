@@ -4,7 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.ignoreStubs;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.example.practice_shop.constant.ReservationStatus;
@@ -89,5 +92,22 @@ class HoldAndQueueGateTest {
         when(queueRepository.getTokenMeta("ready")).thenReturn(Map.of("eventId", "1"));
         when(queueRepository.isReady(1L, "ready")).thenReturn(true);
         assertThat(queueService.isReady("ready")).isTrue();
+    }
+
+    @Test
+    void 예매에_사용된_토큰은_소비되어_재사용할_수_없다() {
+        QueueRepository queueRepository = mock(QueueRepository.class);
+        QueueService queueService = new QueueService(queueRepository);
+
+        when(queueRepository.getTokenMeta("ready")).thenReturn(Map.of("eventId", "1"));
+
+        queueService.consume("ready");
+        verify(queueRepository).removeReady(1L, "ready");
+
+        // 메타가 없는 토큰은 조용히 무시 (Redis 호출 없음)
+        when(queueRepository.getTokenMeta("fake")).thenReturn(Map.of());
+        queueService.consume("fake");
+        queueService.consume(null);
+        verifyNoMoreInteractions(ignoreStubs(queueRepository));
     }
 }

@@ -84,15 +84,36 @@ public class QueueService {
      * @return 허용 상태면 true. 토큰이 없거나 만료됐으면 false
      */
     public boolean isReady(String token) {
+        Long eventId = eventIdOf(token);
+        return eventId != null && queueRepository.isReady(eventId, token);
+    }
+
+    /**
+     * 입장 토큰을 소비합니다. 예매 1건이 성사되면 호출되며, 이후 같은 토큰으로는 예매할 수 없습니다.
+     * (토큰 1개당 예매 1건 — 매크로가 한 번 통과로 여러 건을 잡는 것을 막습니다)
+     * @param token 대기열 토큰
+     */
+    public void consume(String token) {
+        Long eventId = eventIdOf(token);
+        if (eventId != null) {
+            queueRepository.removeReady(eventId, token);
+        }
+    }
+
+    /**
+     * 토큰 메타에서 이벤트 ID를 복원합니다.
+     * @param token 대기열 토큰
+     * @return 이벤트 ID. 토큰이 없거나 메타가 만료됐으면 null
+     */
+    private Long eventIdOf(String token) {
         if (token == null || token.isBlank()) {
-            return false;
+            return null;
         }
         Map<Object, Object> meta = queueRepository.getTokenMeta(token);
         if (CollectionUtils.isEmpty(meta)) {
-            return false;
+            return null;
         }
-        Long eventId = Long.valueOf((String) meta.get("eventId"));
-        return queueRepository.isReady(eventId, token);
+        return Long.valueOf((String) meta.get("eventId"));
     }
 
     /**

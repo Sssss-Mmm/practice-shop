@@ -46,6 +46,10 @@ public class TicketingController {
 
         String email = authentication.getName();
         ReservationResponse reservation = ticketingService.createReservation(email, request);
+
+        // 예매가 성사된 뒤에만 토큰을 소비한다. (좌석 선점 실패 시에는 재시도 가능)
+        queueService.consume(queueToken);
+
         return ResponseEntity.ok(reservation);
     }
 

@@ -66,6 +66,11 @@ public class RedisQueueRepository implements QueueRepository {
     }
 
     @Override
+    public void removeReady(Long eventId, String token) {
+        redisTemplate.opsForSet().remove(readyKey(eventId), token);
+    }
+
+    @Override
     public Set<String> scanQueueKeys(int count) {
         Set<String> keys = new HashSet<>();
         ScanOptions scanOptions = ScanOptions.scanOptions()

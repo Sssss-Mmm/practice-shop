@@ -13,5 +13,6 @@ public interface QueueRepository {
     Set<String> getTokensInRange(Long eventId, long start, long end);
     void removeFromQueue(Long eventId, String token);
     void markReady(Long eventId, String token, Duration ttl);
+    void removeReady(Long eventId, String token);
     Set<String> scanQueueKeys(int count);
 }
