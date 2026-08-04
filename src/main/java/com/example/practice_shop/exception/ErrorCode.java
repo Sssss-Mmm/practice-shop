@@ -28,6 +28,7 @@ public enum ErrorCode {
     RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "T004", "예매 정보를 찾을 수 없습니다."),
     ALREADY_CANCELLED_RESERVATION(HttpStatus.BAD_REQUEST, "T005", "이미 취소된 예매입니다."),
     INVALID_PAYMENT_AMOUNT(HttpStatus.BAD_REQUEST, "T006", "결제 금액이 일치하지 않습니다."),
+    PAYMENT_CONFIRM_IN_PROGRESS(HttpStatus.CONFLICT, "T007", "결제 확인 중인 예매는 취소할 수 없습니다. 잠시 후 다시 시도해 주세요."),
 
     // Product
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "상품을 찾을 수 없습니다."),

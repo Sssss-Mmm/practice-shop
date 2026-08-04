@@ -22,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -42,6 +44,7 @@ public class TicketingService {
     private final SeatRealtimeService seatRealtimeService;
     private final TossPaymentClient tossPaymentClient;
     private final PaymentRepository paymentRepository;
+    private final TransactionTemplate transactionTemplate;
 
     /** 결제 대기 좌석을 점유해 두는 시간. 이 시간이 지나면 스케줄러가 회수한다. */
     private static final Duration HOLD_DURATION = Duration.ofMinutes(10);
@@ -143,6 +146,11 @@ public class TicketingService {
             throw new CustomException(ErrorCode.ALREADY_CANCELLED_RESERVATION);
         }
 
+        // 승인 결과를 모르는 상태에서 취소하면 결제됐을지 모르는 좌석을 환불 없이 풀어주게 된다.
+        if (reservation.getStatus() == ReservationStatus.PENDING_CONFIRM) {
+            throw new CustomException(ErrorCode.PAYMENT_CONFIRM_IN_PROGRESS);
+        }
+
         // 결제 완료 상태라면 환불 처리
         if (reservation.getStatus() == ReservationStatus.PAID && reservation.getPaymentKey() != null) {
             // Toss Payments 결제 취소 API 호출
@@ -199,36 +207,89 @@ public class TicketingService {
     /**
      * 결제 승인 및 예매 확정.
      * <p>
-     * 프론트엔드에서 결제 승인 성공 후 호출됩니다.
-     * 1. 주문 ID로 예약 정보를 조회하고 결제 금액을 검증합니다.
-     * 2. Toss Payments에 최종 승인 요청을 보냅니다.
-     * 3. 예약 상태를 PAID로 변경하고 Payment 엔티티를 생성하여 저장합니다.
-     * </p>
+     * 외부 승인(Toss)과 DB 쓰기는 원자적으로 묶을 수 없다. 하나의 트랜잭션 안에서 승인을 호출하면
+     * 승인 성공 후 커밋이 실패했을 때 돈만 빠져나가고, 그 예약은 PENDING_PAYMENT로 남아
+     * {@link #releaseExpiredHolds()}에 회수되어 좌석까지 남에게 다시 팔린다.
+     * <p>
+     * 그래서 승인 시도를 먼저 커밋(PENDING_CONFIRM)한 뒤 승인을 호출한다. 회수 스케줄러는
+     * PENDING_PAYMENT만 대상으로 하므로, 이후 어느 단계에서 죽더라도 좌석은 잠긴 채 남는다.
+     *
      * @param orderId 주문 ID
      * @param paymentKey 결제 키
      * @param amount 결제 금액
      */
-    @Transactional
     public void confirmPayment(String orderId, String paymentKey, Long amount) {
-        Reservation reservation = reservationRepository.findByOrderId(orderId)
-                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
-        
-        if (reservation.getTotalPrice() != amount) {
-             throw new CustomException(ErrorCode.INVALID_PAYMENT_AMOUNT);
+        // 1) 승인을 시도한다는 사실부터 커밋한다.
+        Boolean proceed = transactionTemplate.execute(status -> beginConfirm(orderId, paymentKey, amount));
+        if (!Boolean.TRUE.equals(proceed)) {
+            return; // 이미 확정된 주문 — 재요청은 조용히 무시한다 (멱등)
         }
 
-        // 토스 결제 승인 요청
+        // 2) 외부 승인. 트랜잭션 밖이라 DB 커넥션을 물고 외부 응답을 기다리지 않는다.
         com.example.practice_shop.dtos.Payment.TossPaymentConfirmRequest confirmRequest = new com.example.practice_shop.dtos.Payment.TossPaymentConfirmRequest();
         confirmRequest.setPaymentKey(paymentKey);
         confirmRequest.setOrderId(orderId);
         confirmRequest.setAmount(amount);
-        
-        tossPaymentClient.confirmPayment(confirmRequest);
 
-        // 예매 상태 업데이트
+        try {
+            tossPaymentClient.confirmPayment(confirmRequest);
+        } catch (ResourceAccessException e) {
+            // 타임아웃·네트워크 오류: 승인됐는지 알 수 없다. PENDING_CONFIRM으로 남겨 좌석을 잠가 둔다.
+            // 결제됐을지 모르는 좌석을 남에게 다시 파는 것보다, 좌석이 묶인 채 사람이 확인하는 편이 낫다.
+            // ponytail: 자동 대사(reconcile) 없음. Toss 결제 조회 API를 붙여 PENDING_CONFIRM 건을
+            //           주기적으로 확정/해제하는 스케줄러가 다음 단계.
+            throw e;
+        } catch (RuntimeException e) {
+            // 토스가 명시적으로 거절했다 = 승인되지 않은 것이 확실하다. 좌석을 즉시 되돌린다.
+            transactionTemplate.execute(status -> {
+                revertConfirm(orderId);
+                return null;
+            });
+            throw e;
+        }
+
+        // 3) 확정.
+        transactionTemplate.execute(status -> {
+            finalizeConfirm(orderId, paymentKey, amount);
+            return null;
+        });
+    }
+
+    /**
+     * 승인 요청 직전 상태를 커밋합니다.
+     * @return 승인을 진행해야 하면 true, 이미 확정된 주문이면 false
+     */
+    private boolean beginConfirm(String orderId, String paymentKey, Long amount) {
+        Reservation reservation = reservationRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        if (reservation.getStatus() == ReservationStatus.PAID) {
+            return false;
+        }
+        if (reservation.getTotalPrice() != amount) {
+            throw new CustomException(ErrorCode.INVALID_PAYMENT_AMOUNT);
+        }
+
+        reservation.setStatus(ReservationStatus.PENDING_CONFIRM);
+        reservation.setPaymentKey(paymentKey);
+        return true;
+    }
+
+    /** 승인이 거절됐을 때 좌석을 다시 회수 대상으로 되돌립니다. */
+    private void revertConfirm(String orderId) {
+        reservationRepository.findByOrderId(orderId).ifPresent(reservation -> {
+            reservation.setStatus(ReservationStatus.PENDING_PAYMENT);
+            reservation.setPaymentKey(null);
+        });
+    }
+
+    /** 승인 성공 후 예매를 확정합니다. */
+    private void finalizeConfirm(String orderId, String paymentKey, Long amount) {
+        Reservation reservation = reservationRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
         reservation.setStatus(ReservationStatus.PAID);
         reservation.setPaymentKey(paymentKey);
-        reservationRepository.save(reservation);
 
         // 좌석을 판매 완료로 확정하고 홀드를 해제한다.
         List<SeatInventory> soldInventories = new ArrayList<>();
@@ -243,7 +304,6 @@ public class TicketingService {
         // 누적 결제 금액 반영 → 등급 자동 승급 (User.accumulateSpend)
         reservation.getUser().accumulateSpend(amount);
 
-        // Payment 엔티티 생성 및 저장
         com.example.practice_shop.entity.Payment payment = com.example.practice_shop.entity.Payment.builder()
                 .reservation(reservation)
                 .amount(BigDecimal.valueOf(amount))
