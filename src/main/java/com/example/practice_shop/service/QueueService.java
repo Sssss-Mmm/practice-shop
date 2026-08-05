@@ -3,14 +3,10 @@ package com.example.practice_shop.service;
 import com.example.practice_shop.dtos.queue.QueueEnterResponse;
 import com.example.practice_shop.dtos.queue.QueueStatusResponse;
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
