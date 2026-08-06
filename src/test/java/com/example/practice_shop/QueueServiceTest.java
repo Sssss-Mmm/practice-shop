@@ -22,6 +22,7 @@ class QueueServiceTest {
 
     /** 토큰이 eventId=1 이벤트에 속한 상태로 세팅. */
     private void 토큰이_유효하면(String token) {
+        // 토큰이 eventId=1 이벤트에 속한 상태로 세팅
         when(repo.getTokenMeta(token)).thenReturn(Map.<Object, Object>of("eventId", "1"));
     }
 
