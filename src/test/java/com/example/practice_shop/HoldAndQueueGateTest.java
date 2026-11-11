@@ -51,7 +51,7 @@ import org.springframework.web.client.ResourceAccessException;
 class HoldAndQueueGateTest {
 
     /** 콜백을 그대로 실행하는 TransactionTemplate. 트랜잭션 경계는 통합 테스트의 몫. */
-    private static TransactionTemplate directTx() {
+    static TransactionTemplate directTx() {
         TransactionTemplate tx = mock(TransactionTemplate.class);
         when(tx.execute(any())).thenAnswer(inv ->
                 ((TransactionCallback<?>) inv.getArgument(0)).doInTransaction(null));
@@ -108,22 +108,43 @@ class HoldAndQueueGateTest {
         QueueService queueService = new QueueService(queueRepository);
 
         // 토큰 자체가 없는 경우
-        assertThat(queueService.isReady(null)).isFalse();
-        assertThat(queueService.isReady("  ")).isFalse();
+        assertThat(queueService.isReady(null, "me@t.com")).isFalse();
+        assertThat(queueService.isReady("  ", "me@t.com")).isFalse();
 
         // 메타는 없는데 토큰만 지어낸 경우
         when(queueRepository.getTokenMeta("fake")).thenReturn(Map.of());
-        assertThat(queueService.isReady("fake")).isFalse();
+        assertThat(queueService.isReady("fake", "me@t.com")).isFalse();
 
         // 아직 순서가 안 온 경우
-        when(queueRepository.getTokenMeta("waiting")).thenReturn(Map.of("eventId", "1"));
+        when(queueRepository.getTokenMeta("waiting")).thenReturn(Map.of("eventId", "1", "userId", "me@t.com"));
         when(queueRepository.isReady(anyLong(), eq("waiting"))).thenReturn(false);
-        assertThat(queueService.isReady("waiting")).isFalse();
+        assertThat(queueService.isReady("waiting", "me@t.com")).isFalse();
 
         // 입장 허용된 경우
-        when(queueRepository.getTokenMeta("ready")).thenReturn(Map.of("eventId", "1"));
+        when(queueRepository.getTokenMeta("ready")).thenReturn(Map.of("eventId", "1", "userId", "me@t.com"));
         when(queueRepository.isReady(1L, "ready")).thenReturn(true);
-        assertThat(queueService.isReady("ready")).isTrue();
+        assertThat(queueService.isReady("ready", "me@t.com")).isTrue();
+    }
+
+    @Test
+    void 남이_받은_대기열_토큰으로는_예매할_수_없다() {
+        QueueRepository queueRepository = mock(QueueRepository.class);
+        QueueService queueService = new QueueService(queueRepository);
+        when(queueRepository.getTokenMeta("ready")).thenReturn(Map.of("eventId", "1", "userId", "owner@t.com"));
+        when(queueRepository.isReady(1L, "ready")).thenReturn(true);
+
+        // 통과한 토큰을 넘겨받거나 산 경우
+        assertThat(queueService.isReady("ready", "buyer@t.com")).isFalse();
+        assertThat(queueService.isReady("ready", null)).isFalse();
+        assertThat(queueService.isReady("ready", "owner@t.com")).isTrue();
+    }
+
+    @Test
+    void 사용자_없이는_대기열에_진입할_수_없다() {
+        QueueService queueService = new QueueService(mock(QueueRepository.class));
+
+        assertThatThrownBy(() -> queueService.enter(1L, null)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> queueService.enter(1L, " ")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

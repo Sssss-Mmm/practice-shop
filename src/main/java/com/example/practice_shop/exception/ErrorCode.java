@@ -20,6 +20,7 @@ public enum ErrorCode {
     UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "U004", "접근 권한이 없습니다."),
     EMAIL_NOT_VERIFIED(HttpStatus.FORBIDDEN, "U005", "이메일 인증이 완료되지 않았습니다."),
     ACCOUNT_INACTIVE(HttpStatus.FORBIDDEN, "U006", "비활성화된 계정입니다."),
+    LOGIN_REQUIRED(HttpStatus.UNAUTHORIZED, "U007", "로그인이 필요합니다."),
 
     // Ticketing
     SHOWTIME_NOT_FOUND(HttpStatus.NOT_FOUND, "T001", "해당 회차 정보를 찾을 수 없습니다."),

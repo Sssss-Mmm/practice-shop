@@ -31,6 +31,9 @@ public class QueueService {
      * @return
      */
     public QueueEnterResponse enter(Long eventId, String userId) {
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalArgumentException("대기열 진입에는 사용자 식별이 필요합니다.");
+        }
         String token = UUID.randomUUID().toString();
         long now = System.currentTimeMillis();
 
@@ -38,7 +41,7 @@ public class QueueService {
         
         Map<String, String> meta = Map.of(
                 "eventId", eventId.toString(),
-                "userId", userId != null ? userId : "anonymous",
+                "userId", userId,
                 "createdAt", Long.toString(now)
         );
         queueRepository.saveTokenMeta(token, meta);
@@ -75,13 +78,18 @@ public class QueueService {
     }
 
     /**
-     * 토큰이 입장 허용 상태인지 확인합니다. (예매 API 게이트용)
+     * 토큰이 이 사용자의 것이고 입장 허용 상태인지 확인합니다. (예매 API 게이트용)
+     * 주인 확인이 없으면 통과한 토큰을 다른 계정에 넘기거나 팔 수 있다.
      * @param token 대기열 토큰
-     * @return 허용 상태면 true. 토큰이 없거나 만료됐으면 false
+     * @param userId 예매하려는 사용자
+     * @return 본인 토큰이고 허용 상태면 true. 토큰이 없거나 만료됐거나 남의 토큰이면 false
      */
-    public boolean isReady(String token) {
-        Long eventId = eventIdOf(token);
-        return eventId != null && queueRepository.isReady(eventId, token);
+    public boolean isReady(String token, String userId) {
+        Map<Object, Object> meta = metaOf(token);
+        if (meta == null || userId == null || !userId.equals(meta.get("userId"))) {
+            return false;
+        }
+        return queueRepository.isReady(Long.valueOf((String) meta.get("eventId")), token);
     }
 
     /**
@@ -102,14 +110,16 @@ public class QueueService {
      * @return 이벤트 ID. 토큰이 없거나 메타가 만료됐으면 null
      */
     private Long eventIdOf(String token) {
+        Map<Object, Object> meta = metaOf(token);
+        return meta == null ? null : Long.valueOf((String) meta.get("eventId"));
+    }
+
+    private Map<Object, Object> metaOf(String token) {
         if (token == null || token.isBlank()) {
             return null;
         }
         Map<Object, Object> meta = queueRepository.getTokenMeta(token);
-        if (CollectionUtils.isEmpty(meta)) {
-            return null;
-        }
-        return Long.valueOf((String) meta.get("eventId"));
+        return CollectionUtils.isEmpty(meta) ? null : meta;
     }
 
     /**

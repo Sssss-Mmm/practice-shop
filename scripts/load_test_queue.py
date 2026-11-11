@@ -4,7 +4,10 @@
 다수의 가상 유저(쓰레드)가 동시에 대기열에 진입(enter)한 뒤,
 입장 가능(ready) 상태가 될 때까지 순번(status)을 폴링하는 시나리오를 시뮬레이션한다.
 
-엔드포인트 (인증 없이 userId 파라미터로 진입 허용):
+서버를 부하 테스트 모드로 띄워야 한다. 기본 모드에서는 대기열 진입에 로그인이 필요하다(401).
+  java -jar build/libs/practice-shop-*.jar --queue.load-test-mode=true
+
+엔드포인트 (부하 테스트 모드에서만 userId 파라미터로 진입 허용):
   POST /api/queue/enter/{eventId}?userId=...  -> {token, position}
   GET  /api/queue/status?token=...            -> {ready, position}
 

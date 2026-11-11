@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import QueueService from '../services/queue.service';
-import AuthService from '../services/auth.service';
 import './QueueWaitingPage.css';
 
 const QueueWaitingPage = () => {
@@ -9,12 +8,6 @@ const QueueWaitingPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     
-    // Attempt to get userId if logged in, otherwise use anonymous or random
-    const [userId, setUserId] = useState(() => {
-        const user = AuthService.getCurrentUser();
-        return user ? user.email : `anon-${Math.random().toString(36).substr(2, 9)}`;
-    });
-
     const [token, setToken] = useState(null);
     const [position, setPosition] = useState(null);
     const [error, setError] = useState(null);
@@ -24,7 +17,7 @@ const QueueWaitingPage = () => {
     useEffect(() => {
         const enterQueue = async () => {
             try {
-                const response = await QueueService.enterQueue(eventId, userId);
+                const response = await QueueService.enterQueue(eventId);
                 setToken(response.data.token);
                 setPosition(response.data.position);
             } catch (err) {
@@ -36,7 +29,7 @@ const QueueWaitingPage = () => {
         if (eventId) {
             enterQueue();
         }
-    }, [eventId, userId]);
+    }, [eventId]);
 
     // Step 2: Poll Status
     useEffect(() => {

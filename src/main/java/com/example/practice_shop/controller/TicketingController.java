@@ -39,12 +39,12 @@ public class TicketingController {
     public ResponseEntity<ReservationResponse> reserveSeats(Authentication authentication,
                                                             @RequestHeader(value = "Queue-Token", required = false) String queueToken,
                                                             @Valid @RequestBody SeatSelectionRequest request) {
-        // 대기열을 통과한 토큰만 예매를 허용한다. (허용 토큰 TTL 5분)
-        if (!queueService.isReady(queueToken)) {
+        String email = authentication.getName();
+
+        // 대기열을 통과한 본인 토큰만 예매를 허용한다. (허용 토큰 TTL 15분)
+        if (!queueService.isReady(queueToken, email)) {
             throw new IllegalArgumentException("대기열 입장 토큰이 없거나 만료되었습니다. 대기열에 다시 진입해 주세요.");
         }
-
-        String email = authentication.getName();
         ReservationResponse reservation = ticketingService.createReservation(email, request);
 
         // 예매가 성사된 뒤에만 토큰을 소비한다. (좌석 선점 실패 시에는 재시도 가능)
