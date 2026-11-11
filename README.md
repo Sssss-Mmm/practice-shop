@@ -75,13 +75,12 @@ graph TD
 ### 3. 예약 및 실시간 좌석 (Ticketing & Realtime Seats)
 - **복잡한 예약 로직**: 공연 -> 회차 -> 구역 -> 좌석 선택 흐름.
 - **실시간 동기화**: WebSocket(STOMP)을 이용하여 다른 유저가 좌석을 선택하면 **실시간으로 '선점됨' 상태 반영**.
-- **동시성 제어**: 다수 유저가 동시 시도 시 데이터 무결성 보장 (DB Lock / Redis).
+- **동시성 제어**: 좌석 재고 조회 시 비관적 락(`SELECT ... FOR UPDATE`)으로 같은 좌석의 중복 예약 차단. 아래 [검증](#-검증-verification) 참고.
 
 ### 4. 결제 시스템 (Payment)
 - **Strategy Pattern 적용**: 결제 수단(토스 페이먼츠 등) 추가에 유연한 구조로 리팩토링.
 - **Toss Payments 연동**: 실제 결제 승인 및 취소 프로세스 구현.
 - **트랜잭션 보장**: 결제 실패 또는 유저 취소 시 **자동 환불 및 좌석 점유 해제**.
-- **멱등성**: 중복 결제 방지 로직.
 
 ### 5. 관리자 (Admin)
 - **통합 마법사 (Wizard)**: 공연, 공연장, 회차를 한 번에 등록하는 올인원 페이지.
@@ -105,6 +104,38 @@ graph TD
 ### 8. 🤖 AI Assistant (RAG)
 - **질의응답 시스템**: 프로젝트 관련 문서(매뉴얼, 정책 등)를 기반으로 사용자 질문에 답변.
 - **Vector Search**: ChromaDB를 사용하여 관련성 높은 문서를 검색 후 GPT-3.5가 답변 생성.
+
+---
+
+## ✅ 검증 (Verification)
+
+### 좌석 동시 예매 테스트
+`SeatReservationConcurrencyTest`는 Testcontainers로 실제 PostgreSQL 15를 띄워서 실행합니다(Docker 필요). 100개 스레드가 같은 좌석을 동시에 예매합니다.
+
+| 조건 | 성공한 예약 수 |
+| --- | --- |
+| 비관적 락 적용 (현재 코드) | **1건** (나머지 99건은 `SEAT_ALREADY_RESERVED`) |
+| `@Lock` 제거 시 | **10건 중복 예약** (동시 진입 수가 커넥션 풀 크기 10에서 막힘) |
+
+```bash
+./gradlew test --tests '*SeatReservationConcurrencyTest'
+```
+
+### 대기열 진입 부하 테스트
+`scripts/load_test_queue.py`로 측정했습니다. 동시 워커 100개, `POST /api/queue/enter` 응답시간만 쟀습니다.
+
+| 가상 유저 | 실패 | p50 | p95 | max |
+| --- | --- | --- | --- | --- |
+| 200 | 0 | 9ms | 537ms | 568ms |
+| 500 | 0 | 5ms | 349ms | 554ms |
+| 1,000 | 0 | 4ms | 80ms | 853ms |
+| 2,000 | 0 | 3ms | 15ms | 686ms |
+
+> 측정 환경: 로컬 단일 머신(WSL2, 16코어). 서버와 부하 발생기가 같은 머신에서 돌았고, Redis 7과 Postgres 15는 Docker로 띄웠습니다. 200명 구간의 p95가 높은 건 JVM 워밍업 영향으로 보입니다. 운영 환경 수치가 아닙니다.
+
+```bash
+python3 scripts/load_test_queue.py --users 1000 --workers 100 --polls 1
+```
 
 ---
 
