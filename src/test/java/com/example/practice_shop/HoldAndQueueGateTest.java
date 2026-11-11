@@ -16,6 +16,8 @@ import com.example.practice_shop.constant.ReservationStatus;
 import com.example.practice_shop.constant.SeatStatus;
 import com.example.practice_shop.dtos.ticketing.SeatStatusMessage;
 import com.example.practice_shop.entity.Reservation;
+import com.example.practice_shop.exception.CustomException;
+import com.example.practice_shop.exception.ErrorCode;
 import com.example.practice_shop.entity.ReservationSeat;
 import com.example.practice_shop.entity.SeatInventory;
 import com.example.practice_shop.entity.Showtime;
@@ -226,5 +228,24 @@ class HoldAndQueueGateTest {
 
         verifyNoInteractions(toss);
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.PAID);
+    }
+
+    @Test
+    void 결제_승인_중인_예매는_취소할_수_없다() {
+        Reservation reservation = pendingReservation();
+        reservation.setStatus(ReservationStatus.PENDING_CONFIRM);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        when(reservationRepository.findByIdAndUser_Email(1L, "u@t.com")).thenReturn(Optional.of(reservation));
+
+        TossPaymentClient toss = mock(TossPaymentClient.class);
+        TicketingService service = new TicketingService(
+                null, null, null, reservationRepository, mock(SeatRealtimeService.class), toss, null, directTx());
+
+        assertThatThrownBy(() -> service.cancelReservation("u@t.com", 1L))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode").isEqualTo(ErrorCode.PAYMENT_CONFIRM_IN_PROGRESS);
+
+        verifyNoInteractions(toss);
+        assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.PENDING_CONFIRM);
     }
 }
