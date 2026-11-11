@@ -5,6 +5,34 @@
 
 ---
 
+## 📸 시연 (Demo)
+
+> 로컬에서 실제로 실행해 캡처한 화면입니다. 공연과 포스터는 시연용으로 만든 가상 데이터입니다.
+
+### 1. 메인 · 공연 상세
+| 메인 | 공연 상세 · 회차 선택 |
+| --- | --- |
+| <img src="docs/images/01-home.png" width="420"> | <img src="docs/images/02-event-detail.png" width="420"> |
+
+### 2. 대기열
+예매 버튼을 누르면 Redis 대기열에 들어갑니다. 아래는 2,000명이 먼저 진입한 상태에서 들어갔을 때의 화면이고, 순번이 오면 좌석 선택 화면으로 자동 이동합니다.
+
+<img src="docs/images/03-queue.png" width="420">
+
+### 3. 실시간 좌석 선점
+좌석을 고르는 중에 다른 사용자가 **C5·C6**을 예매하자, 새로고침 없이 WebSocket(STOMP)으로 바로 '예매 완료'로 바뀌었습니다.
+
+| 좌석 선택 중 | 다른 사용자가 C5·C6 예매 직후 |
+| --- | --- |
+| <img src="docs/images/04-seats-selected.png" width="420"> | <img src="docs/images/05-seats-realtime.png" width="420"> |
+
+### 4. 예매 내역 · 관리자 · API 문서
+| 나의 예매 내역 | 관리자 올인원 등록 | Swagger |
+| --- | --- | --- |
+| <img src="docs/images/06-my-tickets.png" width="280"> | <img src="docs/images/07-admin-wizard.png" width="280"> | <img src="docs/images/08-swagger.png" width="280"> |
+
+---
+
 ## 🏗 아키텍처 (Architecture)
 
 ### 시스템 아키텍처
