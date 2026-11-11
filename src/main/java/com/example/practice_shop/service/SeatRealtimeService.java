@@ -59,6 +59,14 @@ public class SeatRealtimeService {
     }
 
     /**
+     * 회차의 현재 좌석 상태. 좌석 화면 첫 로딩용 — 이후 변경은 WebSocket으로 받는다.
+     * @param inventories 회차의 좌석 재고
+     */
+    public List<SeatStatusMessage.SeatStatusItem> snapshot(List<SeatInventory> inventories) {
+        return inventories.stream().map(this::toSeatStatusItem).toList();
+    }
+
+    /**
      * 좌석 상태를 SeatStatusMessage.SeatStatusItem으로 변환합니다.
      * @param inventory
      * @return
@@ -70,6 +78,7 @@ public class SeatRealtimeService {
                 .sectionName(inventory.getSeat() != null ? inventory.getSeat().getSectionName() : null)
                 .rowLabel(inventory.getSeat() != null ? inventory.getSeat().getRowLabel() : null)
                 .seatNumber(inventory.getSeat() != null ? inventory.getSeat().getSeatNumber() : null)
+                .price(inventory.getPrice())
                 .status(inventory.getStatus())
                 .holdExpiresAt(inventory.getHoldExpiresAt())
                 .build();

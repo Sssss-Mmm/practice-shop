@@ -20,6 +20,7 @@ public class SeatStatusMessage {
         private String sectionName;
         private String rowLabel;
         private String seatNumber;
+        private java.math.BigDecimal price;
         private SeatStatus status;
         private LocalDateTime holdExpiresAt;
     }

@@ -16,6 +16,9 @@ public interface SeatInventoryRepository extends JpaRepository<SeatInventory, Lo
     List<SeatInventory> findByShowtimeAndStatus(Showtime showtime, SeatStatus status);
     List<SeatInventory> findBySeat(Seat seat);
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "seat")
+    List<SeatInventory> findByShowtimeId(Long showtimeId);
+
     List<SeatInventory> findAllByIdInAndShowtimeId(List<Long> ids, Long showtimeId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

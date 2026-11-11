@@ -21,8 +21,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "LEFT JOIN FETCH e.venue " +
             "LEFT JOIN FETCH e.showtimes s " +
             "LEFT JOIN FETCH s.venue " +
-            "WHERE (:keyword IS NULL OR LOWER(e.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-            "       OR LOWER(e.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+            // keyword가 null이면 Postgres가 파라미터 타입을 bytea로 추론해 lower(bytea) 오류가 난다 → 문자열로 캐스팅
+            "WHERE (:keyword IS NULL OR LOWER(e.title) LIKE LOWER(CONCAT('%', CAST(:keyword AS String), '%')) " +
+            "       OR LOWER(e.description) LIKE LOWER(CONCAT('%', CAST(:keyword AS String), '%'))) AND " +
             "(:category IS NULL OR e.category = :category) AND " +
             "(:startDate IS NULL OR e.salesEndDate >= :startDate) AND " +
             "(:endDate IS NULL OR e.salesStartDate <= :endDate) AND " +

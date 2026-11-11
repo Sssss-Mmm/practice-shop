@@ -22,13 +22,11 @@ const SeatSelectionPage = () => {
         ShowtimeService.getShowtime(showtimeId)
             .then(res => {
                 setShowtime(res.data);
-                // Fetch real seats
-                return SeatService.listByVenue(res.data.venueId);
+                // 공연장 좌석 목록이 아니라 이 회차의 좌석 상태를 받아야 이미 예매된 좌석이 처음부터 보인다
+                return SeatService.listByShowtime(showtimeId);
             })
             .then(res => {
-                // In production, you would fetch the initial status from an API (e.g. GET /seats/status)
-                // For now, assume all available, or use the simulation logic partially if backend data isn't fully ready
-                setSeats(res.data.map(s => ({...s, status: s.status || 'AVAILABLE'})));
+                setSeats(res.data.map(s => ({ ...s, basePrice: Number(s.price) })));
             })
             .catch(err => {
                 console.error("Failed to load seat info:", err);
