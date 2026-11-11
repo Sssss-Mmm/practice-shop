@@ -4,7 +4,9 @@ import com.example.practice_shop.dtos.Payment.TossPaymentConfirmRequest;
 import com.example.practice_shop.dtos.Payment.TossPaymentConfirmResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -86,6 +88,37 @@ public class TossPaymentClient {
             restTemplate.postForEntity(url, entity, String.class);
         } catch (HttpStatusCodeException ex) {
             throw new IllegalStateException("토스 결제 취소 실패: " + ex.getResponseBodyAsString(), ex);
+        }
+    }
+
+    /** 결제 조회 결과 중 대사에 필요한 필드만. status: READY, IN_PROGRESS, DONE, CANCELED, ABORTED, EXPIRED 등 */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record PaymentLookup(String status, Long totalAmount) {}
+
+    /**
+     * 주문 ID로 토스 결제를 조회합니다. (승인 결과를 모르는 건의 대사용)
+     * @param orderId 주문 ID
+     * @return 결제 정보. 토스에 해당 주문의 결제가 없으면(404) null
+     */
+    public PaymentLookup getPaymentByOrderId(String orderId) {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException("토스 시크릿 키가 설정되지 않았습니다.");
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.AUTHORIZATION, buildBasicAuthHeader());
+        try {
+            return restTemplate.exchange(
+                    "https://api.tosspayments.com/v1/payments/orders/" + orderId,
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    PaymentLookup.class
+            ).getBody();
+        } catch (HttpStatusCodeException ex) {
+            if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return null;
+            }
+            throw new IllegalStateException("토스 결제 조회 실패: " + ex.getResponseBodyAsString(), ex);
         }
     }
 

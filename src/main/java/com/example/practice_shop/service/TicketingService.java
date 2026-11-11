@@ -18,7 +18,9 @@ import com.example.practice_shop.repository.UserRepository;
 import com.example.practice_shop.repository.PaymentRepository; // Import Added
 import com.example.practice_shop.integration.toss.TossPaymentClient; // Import Added
 
+import com.example.practice_shop.config.RestTemplateConfig;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TicketingService {
@@ -48,6 +51,12 @@ public class TicketingService {
 
     /** 결제 대기 좌석을 점유해 두는 시간. 이 시간이 지나면 스케줄러가 회수한다. */
     private static final Duration HOLD_DURATION = Duration.ofMinutes(10);
+
+    /**
+     * 승인 요청 후 이만큼 지나도 PENDING_CONFIRM이면 대사 대상. 진행 중인 승인 요청과 겹치지 않도록
+     * HTTP 읽기 타임아웃보다 넉넉히 길게 둔다. (겹치더라도 확정/되돌림은 상태 검사로 한 번만 반영된다)
+     */
+    private static final Duration CONFIRM_RECONCILE_AFTER = RestTemplateConfig.READ_TIMEOUT.multipliedBy(2);
 
     /**
      * 예약을 생성합니다.
@@ -184,6 +193,50 @@ public class TicketingService {
     }
 
     /**
+     * 승인 결과를 모른 채 PENDING_CONFIRM으로 남은 예약을 토스 결제 조회로 확정하거나 되돌립니다.
+     * <p>
+     * DONE이면 확정, 승인되지 않은 것이 확실하면(ABORTED·EXPIRED·CANCELED·조회 결과 없음) 결제 대기로
+     * 되돌려 홀드 만료 회수에 맡긴다. 그 외(아직 진행 중, 금액 불일치, 조회 실패)는 다음 주기로 미룬다.
+     * 외부 호출은 트랜잭션 밖에서 하고, 반영할 때 다시 행 락을 잡고 상태를 확인한다.
+     * </p>
+     */
+    @Scheduled(fixedDelay = 60_000)
+    public void reconcilePendingConfirms() {
+        LocalDateTime cutoff = LocalDateTime.now().minus(CONFIRM_RECONCILE_AFTER);
+        for (Reservation stuck : reservationRepository.findByStatusAndConfirmRequestedAtBefore(ReservationStatus.PENDING_CONFIRM, cutoff)) {
+            String orderId = stuck.getOrderId();
+            TossPaymentClient.PaymentLookup payment;
+            try {
+                payment = tossPaymentClient.getPaymentByOrderId(orderId);
+            } catch (RuntimeException e) {
+                log.warn("결제 조회 실패, 다음 주기에 재시도. orderId={}", orderId, e);
+                continue;
+            }
+
+            String status = payment == null ? "NOT_FOUND" : payment.status();
+            switch (status) {
+                case "DONE" -> {
+                    long amount = stuck.getTotalPrice();
+                    if (payment.totalAmount() == null || payment.totalAmount() != amount) {
+                        log.error("결제 금액 불일치 — 수동 확인 필요. orderId={}, 예약={}, 토스={}", orderId, amount, payment.totalAmount());
+                        continue;
+                    }
+                    transactionTemplate.execute(tx -> {
+                        finalizeConfirm(orderId, stuck.getPaymentKey(), amount);
+                        return null;
+                    });
+                }
+                case "NOT_FOUND", "ABORTED", "EXPIRED", "CANCELED" ->
+                        transactionTemplate.execute(tx -> {
+                            revertConfirm(orderId);
+                            return null;
+                        });
+                default -> log.info("결제 진행 중({}), 다음 주기에 재확인. orderId={}", status, orderId);
+            }
+        }
+    }
+
+    /**
      * 예약을 취소 상태로 바꾸고 점유 중이던 좌석을 모두 반환합니다.
      * @param reservation 대상 예약
      */
@@ -236,9 +289,8 @@ public class TicketingService {
             tossPaymentClient.confirmPayment(confirmRequest);
         } catch (ResourceAccessException e) {
             // 타임아웃·네트워크 오류: 승인됐는지 알 수 없다. PENDING_CONFIRM으로 남겨 좌석을 잠가 둔다.
-            // 결제됐을지 모르는 좌석을 남에게 다시 파는 것보다, 좌석이 묶인 채 사람이 확인하는 편이 낫다.
-            // ponytail: 자동 대사(reconcile) 없음. Toss 결제 조회 API를 붙여 PENDING_CONFIRM 건을
-            //           주기적으로 확정/해제하는 스케줄러가 다음 단계.
+            // 결제됐을지 모르는 좌석을 남에게 다시 파는 것보다, 잠가 두고 대사로 확정하는 편이 낫다.
+            // 이후 reconcilePendingConfirms()가 토스 결제 조회로 확정하거나 되돌린다.
             throw e;
         } catch (RuntimeException e) {
             // 토스가 명시적으로 거절했다 = 승인되지 않은 것이 확실하다. 좌석을 즉시 되돌린다.
@@ -281,21 +333,34 @@ public class TicketingService {
 
         reservation.setStatus(ReservationStatus.PENDING_CONFIRM);
         reservation.setPaymentKey(paymentKey);
+        reservation.setConfirmRequestedAt(LocalDateTime.now());
         return true;
     }
 
-    /** 승인이 거절됐을 때 좌석을 다시 회수 대상으로 되돌립니다. */
+    /** 승인이 거절됐을 때 좌석을 다시 회수 대상으로 되돌립니다. 이미 대사·확정된 건은 건드리지 않습니다. */
     private void revertConfirm(String orderId) {
-        reservationRepository.findByOrderId(orderId).ifPresent(reservation -> {
-            reservation.setStatus(ReservationStatus.PENDING_PAYMENT);
-            reservation.setPaymentKey(null);
-        });
+        reservationRepository.findByOrderId(orderId)
+                .filter(reservation -> reservation.getStatus() == ReservationStatus.PENDING_CONFIRM)
+                .ifPresent(reservation -> {
+                    reservation.setStatus(ReservationStatus.PENDING_PAYMENT);
+                    reservation.setPaymentKey(null);
+                    reservation.setConfirmRequestedAt(null);
+                });
     }
 
     /** 승인 성공 후 예매를 확정합니다. */
     private void finalizeConfirm(String orderId, String paymentKey, Long amount) {
         Reservation reservation = reservationRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        // 진행 중인 승인 요청과 대사 스케줄러가 같은 건을 확정할 수 있다. 먼저 온 쪽만 반영한다.
+        if (reservation.getStatus() != ReservationStatus.PENDING_CONFIRM) {
+            if (reservation.getStatus() != ReservationStatus.PAID) {
+                // 토스는 승인했는데 예약은 이미 다른 상태 — 사람이 보고 환불해야 한다
+                log.error("승인 성공했으나 예약 상태가 {} — 수동 확인 필요. orderId={}", reservation.getStatus(), orderId);
+            }
+            return;
+        }
 
         reservation.setStatus(ReservationStatus.PAID);
         reservation.setPaymentKey(paymentKey);

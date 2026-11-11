@@ -83,4 +83,7 @@ public class Reservation {
      * Toss Payments 결제 키 (결제 성공 시 저장됨)
      */
     private String paymentKey; // 결제 키 (Toss Payments)
+
+    /** 외부 결제 승인을 요청한 시각. PENDING_CONFIRM으로 오래 머문 건을 대사할 때 기준. */
+    private LocalDateTime confirmRequestedAt;
 }
