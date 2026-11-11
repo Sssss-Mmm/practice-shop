@@ -235,7 +235,8 @@ class HoldAndQueueGateTest {
         Reservation reservation = pendingReservation();
         reservation.setStatus(ReservationStatus.PENDING_CONFIRM);
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
-        when(reservationRepository.findByIdAndUser_Email(1L, "u@t.com")).thenReturn(Optional.of(reservation));
+        reservation.setUser(com.example.practice_shop.entity.User.builder().email("u@t.com").build());
+        when(reservationRepository.findWithLockById(1L)).thenReturn(Optional.of(reservation));
 
         TossPaymentClient toss = mock(TossPaymentClient.class);
         TicketingService service = new TicketingService(
@@ -247,5 +248,43 @@ class HoldAndQueueGateTest {
 
         verifyNoInteractions(toss);
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.PENDING_CONFIRM);
+    }
+
+    @Test
+    void 취소되거나_만료된_예약은_결제_승인하지_않는다() {
+        Reservation reservation = pendingReservation();
+        reservation.setStatus(ReservationStatus.CANCELLED);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        when(reservationRepository.findByOrderId("tck-1")).thenReturn(Optional.of(reservation));
+
+        TossPaymentClient toss = mock(TossPaymentClient.class);
+        TicketingService service = new TicketingService(
+                null, null, null, reservationRepository, mock(SeatRealtimeService.class), toss, null, directTx());
+
+        assertThatThrownBy(() -> service.confirmPayment("tck-1", "pk_1", 10_000L))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode").isEqualTo(ErrorCode.ALREADY_CANCELLED_RESERVATION);
+
+        // 좌석이 이미 남에게 팔렸을 수 있다 → 돈을 받으면 안 된다
+        verifyNoInteractions(toss);
+        assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CANCELLED);
+    }
+
+    @Test
+    void 승인_중인_주문에_중복_승인_요청이_오면_토스를_다시_부르지_않는다() {
+        Reservation reservation = pendingReservation();
+        reservation.setStatus(ReservationStatus.PENDING_CONFIRM);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        when(reservationRepository.findByOrderId("tck-1")).thenReturn(Optional.of(reservation));
+
+        TossPaymentClient toss = mock(TossPaymentClient.class);
+        TicketingService service = new TicketingService(
+                null, null, null, reservationRepository, mock(SeatRealtimeService.class), toss, null, directTx());
+
+        assertThatThrownBy(() -> service.confirmPayment("tck-1", "pk_1", 10_000L))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode").isEqualTo(ErrorCode.PAYMENT_CONFIRM_IN_PROGRESS);
+
+        verifyNoInteractions(toss);
     }
 }

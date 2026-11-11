@@ -139,7 +139,8 @@ public class TicketingService {
      */
     @Transactional
     public void cancelReservation(String email, Long reservationId) {
-        Reservation reservation = reservationRepository.findByIdAndUser_Email(reservationId, email)
+        Reservation reservation = reservationRepository.findWithLockById(reservationId)
+                .filter(r -> r.getUser().getEmail().equals(email)) // 남의 예약은 존재 자체를 숨긴다
                 .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
 
         if (reservation.getStatus() == ReservationStatus.CANCELLED) {
@@ -265,6 +266,14 @@ public class TicketingService {
 
         if (reservation.getStatus() == ReservationStatus.PAID) {
             return false;
+        }
+        // 중복 요청(더블클릭 등): 이미 승인 중이면 토스를 두 번 부르지 않는다.
+        if (reservation.getStatus() == ReservationStatus.PENDING_CONFIRM) {
+            throw new CustomException(ErrorCode.PAYMENT_CONFIRM_IN_PROGRESS);
+        }
+        // 홀드 만료·사용자 취소로 좌석이 이미 풀린 예약. 승인하면 돈은 받고 남에게 팔린 좌석을 SOLD로 덮어쓴다.
+        if (reservation.getStatus() != ReservationStatus.PENDING_PAYMENT) {
+            throw new CustomException(ErrorCode.ALREADY_CANCELLED_RESERVATION);
         }
         if (reservation.getTotalPrice() != amount) {
             throw new CustomException(ErrorCode.INVALID_PAYMENT_AMOUNT);
